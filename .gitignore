@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# next.js build output
+.next/
+out/
+
+# env files
+.env*
+!.env.example
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# lockfiles (ถ้าใช้ npm เป็นหลัก ให้ ignore pnpm)
+pnpm-lock.yaml
+
+# misc
+.DS_Store
+*.log
