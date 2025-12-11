@@ -14,7 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read #This is required for actions/checkout
-
+    env:
+      MONGODB_URL: ${{ secrets.MONGODB_URL }}
     steps:
       - uses: actions/checkout@v4
 
@@ -62,4 +63,5 @@ jobs:
           app-name: 'agrisense-web-app'
           slot-name: 'Production'
           package: .
+
           
