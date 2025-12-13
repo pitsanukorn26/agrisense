@@ -9,7 +9,7 @@ const nextConfig = {
   output: "standalone",              // ✅ สำคัญมากสำหรับ OpenNext
 
   // Pin the tracing root so Next.js doesn’t pick another directory when multiple lockfiles exist.
-  outputFileTracingRoot: path.join(__dirname, ".."),
+  outputFileTracingRoot: __dirname,
 
   eslint: {
     ignoreDuringBuilds: true,
