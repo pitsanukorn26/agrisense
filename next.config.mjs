@@ -6,8 +6,11 @@ const __dirname = path.dirname(__filename)
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",              // ✅ สำคัญมากสำหรับ OpenNext
+
   // Pin the tracing root so Next.js doesn’t pick another directory when multiple lockfiles exist.
   outputFileTracingRoot: path.join(__dirname, ".."),
+
   eslint: {
     ignoreDuringBuilds: true,
   },
