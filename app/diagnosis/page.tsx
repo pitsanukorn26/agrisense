@@ -319,24 +319,18 @@ export default function DiagnosisPage() {
 
         if (!isGuest && scanId) {
           try {
-            await fetch(`/api/scans/${scanId}`, {
-              method: "PATCH",
+            await fetch(`/api/scans/${scanId}/complete`, {
+              method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                status: "completed",
-                processedAt: new Date().toISOString(),
-                result: {
-                  label: randomResult.disease,
-                  confidence: randomResult.confidence / 100,
-                  notes: randomResult.recommendation,
-                },
-                metadata: {
-                  localeDisease: randomResult.diseaseLocal,
-                  severity: randomResult.severity,
-                  severityLocal: randomResult.severityLocal,
-                },
+                label: randomResult.disease,
+                confidence: randomResult.confidence / 100,
+                notes: randomResult.recommendation,
+                severity: randomResult.severity,
+                severityLocal: randomResult.severityLocal,
+                localeDisease: randomResult.diseaseLocal,
                 rawModelOutput: {
                   mocked: true,
                 },
@@ -424,24 +418,18 @@ export default function DiagnosisPage() {
 
       if (!isGuest && scanId) {
         try {
-          await fetch(`/api/scans/${scanId}`, {
-            method: "PATCH",
+          await fetch(`/api/scans/${scanId}/complete`, {
+            method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              status: "completed",
-              processedAt: new Date().toISOString(),
-              result: {
-                label: computedResult.disease,
-                confidence: probability,
-                notes: computedResult.recommendation,
-              },
-              metadata: {
-                localeDisease: computedResult.diseaseLocal,
-                severity: computedResult.severity,
-                severityLocal: computedResult.severityLocal,
-              },
+              label: computedResult.disease,
+              confidence: probability,
+              notes: computedResult.recommendation,
+              severity: computedResult.severity,
+              severityLocal: computedResult.severityLocal,
+              localeDisease: computedResult.diseaseLocal,
               rawModelOutput: azure,
             }),
           })
