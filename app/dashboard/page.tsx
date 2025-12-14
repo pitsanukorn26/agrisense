@@ -17,6 +17,7 @@ import {
   setAlertPreference,
   type StoredAlert,
 } from "@/lib/alerts-storage"
+import { formatDateTime } from "@/lib/date-format"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Dialog,
@@ -246,6 +247,7 @@ function fillTemplate(template: string, replacements: Record<string, string>) {
 export default function DashboardPage() {
   const { t, language } = useLanguage()
   const { user, refreshUser } = useAuth()
+  const dateLocale = language === "en" ? "en-GB" : "th-TH"
 
   const translateStatus = (status?: string) => {
     if (!status) return "-"
@@ -701,6 +703,18 @@ export default function DashboardPage() {
   const detailConfidence = detailScan ? formatConfidence(detailScan.confidence) ?? "-" : "-"
   const detailNoteDisplay =
     detailScan ? translateNote(detailScan.notes) ?? detailScan.notes ?? null : null
+  const detailCreatedAt = formatDateTime(detailScan?.createdAt, {
+    locale: dateLocale,
+    fallback: "-",
+  })
+  const detailProcessedAt = formatDateTime(detailScan?.processedAt, {
+    locale: dateLocale,
+    fallback: "-",
+  })
+  const detailCapturedAt = formatDateTime(detailScan?.capturedAt, {
+    locale: dateLocale,
+    fallback: "-",
+  })
 
   const heroTitle =
     user?.role === "admin" ? t("dashboard.adminProfilesTitle") : t("dashboard.title")
@@ -726,7 +740,12 @@ export default function DashboardPage() {
         <p className="mt-2 max-w-2xl text-sm text-white/80 sm:text-base">{heroSubtitle}</p>
         {showAuthenticatedContent && user?.createdAt && (
           <p className="mt-3 text-xs text-white/70 sm:text-sm" suppressHydrationWarning>
-            {t("dashboard.memberSince")} {new Date(user.createdAt).toLocaleDateString()}
+            {t("dashboard.memberSince")}{" "}
+            {formatDateTime(user.createdAt, {
+              locale: dateLocale,
+              fallback: "-",
+              options: { year: "numeric", month: "2-digit", day: "2-digit" },
+            })}
           </p>
         )}
       </div>
@@ -818,13 +837,16 @@ export default function DashboardPage() {
                               key={alert.id}
                               className="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3"
                             >
-                              <p className="text-sm font-semibold text-gray-900">{alert.title}</p>
-                              <p className="text-xs text-gray-500">
-                                <span suppressHydrationWarning>
-                                  {new Date(alert.createdAt).toLocaleString()}
-                                </span>
-                              </p>
-                            </div>
+                                <p className="text-sm font-semibold text-gray-900">{alert.title}</p>
+                                <p className="text-xs text-gray-500">
+                                  <span suppressHydrationWarning>
+                                    {formatDateTime(alert.createdAt, {
+                                      locale: dateLocale,
+                                      fallback: t("dashboard.unknownTime"),
+                                    })}
+                                  </span>
+                                </p>
+                              </div>
                           ))
                         )}
                       </div>
@@ -902,6 +924,10 @@ export default function DashboardPage() {
                         const diagnosisText =
                           formatDiagnosis(scan.label, scan.diseaseLocal) || t("dashboard.pendingAnalysis")
                         const noteText = translateNote(scan.notes) ?? scan.notes
+                        const timestampText = formatDateTime(scan.processedAt ?? scan.createdAt, {
+                          locale: dateLocale,
+                          fallback: t("dashboard.unknownTime"),
+                        })
                         return (
                           <div
                             key={scan.id}
@@ -911,11 +937,7 @@ export default function DashboardPage() {
                               <div className="flex items-center gap-2 text-xs text-gray-500">
                                 <Clock className="h-4 w-4" />
                                 <span suppressHydrationWarning>
-                                  {scan.processedAt
-                                    ? new Date(scan.processedAt).toLocaleString()
-                                    : scan.createdAt
-                                      ? new Date(scan.createdAt).toLocaleString()
-                                      : t("dashboard.unknownTime")}
+                                  {timestampText}
                                 </span>
                               </div>
                               <p className="mt-2 text-base font-semibold text-gray-900">
@@ -1090,7 +1112,7 @@ export default function DashboardPage() {
                   <p className="text-xs uppercase text-gray-500">{t("dashboard.detailSubmittedAt")}</p>
                   <p className="text-sm text-gray-900">
                     <span suppressHydrationWarning>
-                      {detailScan.createdAt ? new Date(detailScan.createdAt).toLocaleString() : "-"}
+                      {detailCreatedAt}
                     </span>
                   </p>
                 </div>
@@ -1098,7 +1120,7 @@ export default function DashboardPage() {
                   <p className="text-xs uppercase text-gray-500">{t("dashboard.detailProcessedAt")}</p>
                   <p className="text-sm text-gray-900">
                     <span suppressHydrationWarning>
-                      {detailScan.processedAt ? new Date(detailScan.processedAt).toLocaleString() : "-"}
+                      {detailProcessedAt}
                     </span>
                   </p>
                 </div>
@@ -1107,7 +1129,7 @@ export default function DashboardPage() {
                     <p className="text-xs uppercase text-gray-500">{t("dashboard.detailCapturedAt")}</p>
                     <p className="text-sm text-gray-900">
                       <span suppressHydrationWarning>
-                        {new Date(detailScan.capturedAt).toLocaleString()}
+                        {detailCapturedAt}
                       </span>
                     </p>
                   </div>

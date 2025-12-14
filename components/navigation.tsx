@@ -18,6 +18,7 @@ import {
   type AlertReadMap,
   type StoredAlert,
 } from "@/lib/alerts-storage"
+import { formatDateTime } from "@/lib/date-format"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -38,6 +39,7 @@ export function Navigation() {
   const pathname = usePathname()
   const { language, setLanguage, t } = useLanguage()
   const { user, logout } = useAuth()
+  const dateLocale = language === "en" ? "en-GB" : "th-TH"
   const [alerts, setAlerts] = useState<StoredAlert[]>([])
   const [readMap, setReadMap] = useState<AlertReadMap>({})
   const [alertsAllowed, setAlertsAllowed] = useState(true)
@@ -245,7 +247,10 @@ export function Navigation() {
                         >
                           <p className="text-sm font-semibold text-gray-900">{alert.title}</p>
                           <p className="text-xs text-gray-500">
-                            {new Date(alert.createdAt).toLocaleString()}
+                            {formatDateTime(alert.createdAt, {
+                              locale: dateLocale,
+                              fallback: "-",
+                            })}
                           </p>
                         </button>
                       ))
@@ -265,7 +270,10 @@ export function Navigation() {
                         >
                           <p className="text-sm font-semibold text-gray-900">{alert.title}</p>
                           <p className="text-xs text-gray-500">
-                            {new Date(alert.createdAt).toLocaleString()}
+                            {formatDateTime(alert.createdAt, {
+                              locale: dateLocale,
+                              fallback: "-",
+                            })}
                           </p>
                         </button>
                       ))
@@ -316,15 +324,15 @@ function AlertPreviewDialog({
   alert: StoredAlert | null
   onClose: () => void
 }) {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+  const locale = language === "en" ? "en-GB" : "th-TH"
   const formattedDate = useMemo(() => {
     if (!alert) return ""
-    try {
-      return new Date(alert.createdAt).toLocaleString()
-    } catch {
-      return alert.createdAt
-    }
-  }, [alert])
+    return formatDateTime(alert.createdAt, {
+      locale,
+      fallback: alert.createdAt,
+    })
+  }, [alert, locale])
 
   return (
     <Dialog

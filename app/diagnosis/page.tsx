@@ -35,6 +35,7 @@ import {
   Clock,
   Flag,
 } from "lucide-react"
+import { formatDateTime } from "@/lib/date-format"
 
 type MockResult = {
   disease: string
@@ -909,6 +910,10 @@ export default function DiagnosisPage() {
                           : scan.label ?? getThaiDiseaseName(scan.label)
                       const noteText = translateHistoryNote(scan.notes) ?? scan.notes
                       const statusText = translateStatus(scan.status)
+                      const timestampText = formatDateTime(scan.processedAt ?? scan.createdAt, {
+                        locale: language === "en" ? "en-GB" : "th-TH",
+                        fallback: "ไม่ทราบเวลา",
+                      })
 
                       return (
                       <div
@@ -919,11 +924,7 @@ export default function DiagnosisPage() {
                           <div className="flex items-center gap-2 text-sm text-gray-500">
                             <Clock className="h-4 w-4" />
                             <span>
-                              {scan.processedAt
-                                ? new Date(scan.processedAt).toLocaleString()
-                                : scan.createdAt
-                                  ? new Date(scan.createdAt).toLocaleString()
-                                  : "ไม่ทราบเวลา"}
+                              {timestampText}
                             </span>
                           </div>
                           <p className="mt-2 text-base font-semibold">
@@ -973,44 +974,6 @@ export default function DiagnosisPage() {
             </Card>
           )}
 
-            {/* Supported crops */}
-            <div className="mx-auto mt-8 max-w-6xl">
-              <h2 className="mb-4 text-lg font-semibold">{t("diagnosis.supportedTitle")}</h2>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                <Card className="overflow-hidden">
-                  <img
-                    src="/images/rice.jpg"
-                    alt="Rice"
-                    className="h-36 w-full object-cover"
-                  />
-                  <CardContent className="p-3 text-center">
-                    <p className="font-medium">{t("diagnosis.crop.rice")}</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="overflow-hidden">
-                  <img
-                    src="/images/sugarcane.jpg"
-                    alt="Sugar Cane"
-                    className="h-36 w-full object-cover"
-                  />
-                  <CardContent className="p-3 text-center">
-                    <p className="font-medium">{t("diagnosis.crop.sugarcane")}</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="overflow-hidden">
-                  <img
-                    src="/images/durian.jpg"
-                    alt="Durian"
-                    className="h-36 w-full object-cover"
-                  />
-                  <CardContent className="p-3 text-center">
-                    <p className="font-medium">{t("diagnosis.crop.durian")}</p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
           </div>
         </div>
       </div>

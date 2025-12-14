@@ -49,6 +49,7 @@ import {
   removeStoredAlert,
   type StoredAlert,
 } from "@/lib/alerts-storage"
+import { formatDateTime } from "@/lib/date-format"
 
 type Role = "farmer" | "expert" | "admin"
 
@@ -107,7 +108,8 @@ const PRIMARY_ADMIN_EMAIL_SAFE = PRIMARY_ADMIN_EMAIL.toLowerCase()
 
 export default function AdminPage() {
   const { user, isLoading } = useAuth()
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+  const dateLocale = language === "en" ? "en-GB" : "th-TH"
 
   const [users, setUsers] = useState<AdminUser[]>([])
   const [lastSynced, setLastSynced] = useState<Date | null>(null)
@@ -422,7 +424,10 @@ export default function AdminPage() {
                       <TableCell className="text-sm text-gray-700">
                         {report.scanId ? `Scan ${report.scanId}` : "ไม่พบคำขอ"}
                         <div className="text-xs text-gray-400">
-                          {report.createdAt ? new Date(report.createdAt).toLocaleString() : "—"}
+                          {formatDateTime(report.createdAt, {
+                            locale: dateLocale,
+                            fallback: "—",
+                          })}
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-gray-700 max-w-xs">
@@ -446,7 +451,11 @@ export default function AdminPage() {
                         </Badge>
                         {report.resolvedAt && (
                           <div className="text-xs text-gray-400">
-                            ปิดเมื่อ {new Date(report.resolvedAt).toLocaleString()}
+                            ปิดเมื่อ{" "}
+                            {formatDateTime(report.resolvedAt, {
+                              locale: dateLocale,
+                              fallback: "—",
+                            })}
                           </div>
                         )}
                       </TableCell>
@@ -532,7 +541,10 @@ export default function AdminPage() {
                         {log.target.name ?? log.target.email ?? t("admin.log.unknownTarget")}
                       </TableCell>
                       <TableCell className="text-sm text-gray-500">
-                        {log.createdAt ? new Date(log.createdAt).toLocaleString() : "—"}
+                        {formatDateTime(log.createdAt, {
+                          locale: dateLocale,
+                          fallback: "—",
+                        })}
                       </TableCell>
                     </TableRow>
                   ))
@@ -650,7 +662,8 @@ type AlertCenterDialogProps = {
 }
 
 function AlertCenterDialog({ open, onOpenChange, onLogCreated }: AlertCenterDialogProps) {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+  const dialogLocale = language === "en" ? "en-GB" : "th-TH"
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -784,19 +797,12 @@ function AlertCenterDialog({ open, onOpenChange, onLogCreated }: AlertCenterDial
   }
 
   const formatTimestamp = useCallback((timestamp: string) => {
-    try {
-      const date = new Date(timestamp)
-      if (Number.isNaN(date.getTime())) {
-        return timestamp
-      }
-      return new Intl.DateTimeFormat(undefined, {
-        dateStyle: "medium",
-        timeStyle: "short",
-      }).format(date)
-    } catch {
-      return timestamp
-    }
-  }, [])
+    return formatDateTime(timestamp, {
+      locale: dialogLocale,
+      fallback: timestamp,
+      options: { dateStyle: "medium", timeStyle: "short" },
+    })
+  }, [dialogLocale])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

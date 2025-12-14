@@ -1,4 +1,5 @@
 import type React from "react"
+import type { Viewport } from "next"
 import "./globals.css"
 import { Inter } from "next/font/google"
 import { LanguageProvider } from "@/components/language-provider"
@@ -10,7 +11,17 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata = {
   title: "AgriSense - AI Plant Disease Detection",
   description: "AI-powered plant disease diagnosis for farmers",
-    generator: 'v0.dev'
+  generator: "agrisense.dev",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
+}
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 }
 
 export default function RootLayout({
