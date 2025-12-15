@@ -46,4 +46,5 @@ export const backend = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  health: () => backendFetch<{ ok: boolean; message?: string }>(`/api/health`),
 }
