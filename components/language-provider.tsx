@@ -795,14 +795,7 @@ const loadStoredLanguage = (): Language | null => {
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguage] = useState<Language>(DEFAULT_LANGUAGE)
-
-  useEffect(() => {
-    const stored = loadStoredLanguage()
-    if (stored) {
-      setLanguage(stored)
-    }
-  }, [])
+  const [language, setLanguage] = useState<Language>(() => loadStoredLanguage() ?? DEFAULT_LANGUAGE)
 
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang)

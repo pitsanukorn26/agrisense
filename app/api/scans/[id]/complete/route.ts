@@ -18,11 +18,11 @@ const completeSchema = z.object({
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   await connectToDatabase()
 
-  const { id } = params
+  const { id } = await params
   if (!isValidObjectId(id)) {
     return NextResponse.json({ error: "Invalid scan id" }, { status: 400 })
   }

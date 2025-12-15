@@ -72,12 +72,12 @@ export default function AboutPage() {
                 <CardContent className="flex flex-col items-center p-0">
                   <img
                     src="/images/team/pitsanukorn.jpg"
-                    alt="pitsanukorn malaipia"
+                    alt="Pitsanukorn malaipia"
                     onError={onImgError}
                     className="h-36 w-36 rounded-full object-cover ring-1 ring-gray-300"
                   />
                   <p className="mt-3 text-center text-sm font-medium text-gray-800">
-                    pitsanukorn malaipia
+                    Pitsanukorn malaipia
                   </p>
                 </CardContent>
               </Card>

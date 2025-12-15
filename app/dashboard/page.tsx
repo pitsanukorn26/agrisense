@@ -997,19 +997,6 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
 
-                <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                    {t("dashboard.tipsTitle")}
-                  </CardTitle>
-                  <CardDescription>{t("dashboard.tipsDescription")}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4 text-sm text-gray-700">
-                  <p>{t("dashboard.tipsBody")}</p>
-                  <p className="text-xs text-gray-500">{t("dashboard.tipsHint")}</p>
-                </CardContent>
-              </Card>
               </div>
             </div>
           </div>

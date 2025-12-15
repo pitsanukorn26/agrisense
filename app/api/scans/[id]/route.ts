@@ -29,15 +29,17 @@ const updateScanSchema = z.object({
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   await connectToDatabase()
 
-  if (!isValidObjectId(params.id)) {
+  const { id } = await params
+
+  if (!isValidObjectId(id)) {
     return NextResponse.json({ error: "Invalid scan id" }, { status: 400 })
   }
 
-  const scan = await ScanModel.findById(params.id).lean()
+  const scan = await ScanModel.findById(id).lean()
 
   if (!scan) {
     return NextResponse.json({ error: "Scan not found" }, { status: 404 })
@@ -53,11 +55,13 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   await connectToDatabase()
 
-  if (!isValidObjectId(params.id)) {
+  const { id } = await params
+
+  if (!isValidObjectId(id)) {
     return NextResponse.json({ error: "Invalid scan id" }, { status: 400 })
   }
 
@@ -88,7 +92,7 @@ export async function PATCH(
   }
 
   const scan = await ScanModel.findByIdAndUpdate(
-    params.id,
+    id,
     { $set: update },
     { new: true },
   ).lean()
@@ -108,15 +112,17 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   await connectToDatabase()
 
-  if (!isValidObjectId(params.id)) {
+  const { id } = await params
+
+  if (!isValidObjectId(id)) {
     return NextResponse.json({ error: "Invalid scan id" }, { status: 400 })
   }
 
-  const scan = await ScanModel.findByIdAndDelete(params.id).lean()
+  const scan = await ScanModel.findByIdAndDelete(id).lean()
 
   if (!scan) {
     return NextResponse.json({ error: "Scan not found" }, { status: 404 })
