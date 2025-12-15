@@ -134,6 +134,8 @@ export default function DiagnosisPage() {
   const [reportReason, setReportReason] = useState("")
   const [reportSubmitting, setReportSubmitting] = useState(false)
   const [reportError, setReportError] = useState<string | null>(null)
+  const [persistenceDisabled, setPersistenceDisabled] = useState(false)
+  const [persistenceWarning, setPersistenceWarning] = useState<string | null>(null)
 
   const mockResults = useMemo<MockResult[]>(
     () => [
@@ -224,7 +226,9 @@ export default function DiagnosisPage() {
         setHistory(mapped)
       } catch (error) {
         console.error(error)
-        setHistoryError("ไม่สามารถโหลดประวัติการวิเคราะห์ได้")
+        setHistoryError("ไม่สามารถโหลดประวัติการวิเคราะห์ได้ (กำลังใช้โหมดไม่บันทึกประวัติ)")
+        setPersistenceDisabled(true)
+        setPersistenceWarning("เซิร์ฟเวอร์บันทึกประวัติไม่ตอบสนอง กำลังวิเคราะห์แบบไม่บันทึกผล")
       } finally {
         setHistoryLoading(false)
       }
@@ -251,12 +255,14 @@ export default function DiagnosisPage() {
     const isGuest = !user
 
     setScanError(null)
+    setPersistenceWarning(null)
     setIsAnalyzing(true)
 
     let scanId: string | null = null
+    const canPersist = !isGuest && !persistenceDisabled
 
     // Persist only when logged in; guests can analyze without saving history.
-    if (!isGuest) {
+    if (canPersist) {
       try {
         const createResponse = await fetch("/api/scans", {
           method: "POST",
@@ -280,11 +286,8 @@ export default function DiagnosisPage() {
         scanId = createPayload?.data?.id
       } catch (error) {
         console.error(error)
-        setScanError(
-          error instanceof Error ? error.message : "การวิเคราะห์ล้มเหลว กรุณาลองใหม่",
-        )
-        setIsAnalyzing(false)
-        return
+        setPersistenceDisabled(true)
+        setPersistenceWarning("บันทึกประวัติไม่ได้ ระบบจะวิเคราะห์แบบไม่บันทึกผลครั้งนี้")
       }
     }
 
@@ -416,7 +419,7 @@ export default function DiagnosisPage() {
 
       setResult(computedResult)
 
-      if (!isGuest && scanId) {
+      if (!isGuest && !persistenceDisabled && scanId) {
         try {
           await fetch(`/api/scans/${scanId}/complete`, {
             method: "POST",
@@ -446,7 +449,7 @@ export default function DiagnosisPage() {
         error instanceof Error ? error.message : "การวิเคราะห์ล้มเหลว กรุณาลองใหม่",
       )
 
-      if (!isGuest && scanId) {
+      if (!isGuest && !persistenceDisabled && scanId) {
         try {
           await fetch(`/api/scans/${scanId}`, {
             method: "PATCH",
@@ -745,6 +748,11 @@ export default function DiagnosisPage() {
                   {scanError && (
                     <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
                       {scanError}
+                    </div>
+                  )}
+                  {persistenceWarning && (
+                    <div className="rounded-md bg-amber-50 p-3 text-sm text-amber-700">
+                      {persistenceWarning}
                     </div>
                   )}
 
