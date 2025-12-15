@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { connectToDatabase } from "@/lib/mongodb"
 import { ScanModel } from "@/models/Scan"
+import { backend, backendProxyEnabled } from "@/lib/backend-client"
 
 const urlOrDataUri = z
   .string()
@@ -30,6 +31,13 @@ const createScanSchema = z.object({
 })
 
 export async function GET(request: Request) {
+  if (backendProxyEnabled) {
+    const { searchParams } = new URL(request.url)
+    const query = searchParams.toString()
+    const response = await backend.listScans(query)
+    return NextResponse.json({ data: response.data })
+  }
+
   await connectToDatabase()
 
   const { searchParams } = new URL(request.url)
@@ -61,6 +69,12 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if (backendProxyEnabled) {
+    const json = await request.json()
+    const response = await backend.createScan(json)
+    return NextResponse.json(response, { status: 201 })
+  }
+
   await connectToDatabase()
 
   const json = await request.json()

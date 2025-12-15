@@ -28,6 +28,13 @@ async function backendFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const backend = {
   getScan: (id: string) => backendFetch<{ data: any }>(`/api/scans/${id}`),
+  listScans: (query: string) =>
+    backendFetch<{ data: any[] }>(`/api/scans${query ? `?${query}` : ""}`),
+  createScan: (body: any) =>
+    backendFetch<{ data: any }>(`/api/scans`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   updateScan: (id: string, body: any) =>
     backendFetch<{ data: any }>(`/api/scans/${id}`, {
       method: "PATCH",
