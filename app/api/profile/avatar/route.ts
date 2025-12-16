@@ -1,18 +1,24 @@
 import { NextResponse } from "next/server"
 import { isValidObjectId } from "mongoose"
-import path from "node:path"
-import fs from "node:fs/promises"
 import sharp from "sharp"
 
 import { connectToDatabase } from "@/lib/mongodb"
 import { UserModel } from "@/models/User"
 import { sanitizeUser } from "@/lib/auth"
+import { backend, backendProxyEnabled } from "@/lib/backend-client"
+import { uploadBuffer } from "@/src/services/storage-service"
 
 const MAX_FILE_SIZE = 4 * 1024 * 1024 // 4MB
 const ALLOWED_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"]
 
 export async function POST(request: Request) {
   try {
+    if (backendProxyEnabled) {
+      const formData = await request.formData()
+      const response = await backend.uploadAvatar(formData)
+      return NextResponse.json(response)
+    }
+
     const formData = await request.formData()
     const userId = formData.get("userId")
     const file = formData.get("file")
@@ -47,21 +53,9 @@ export async function POST(request: Request) {
       .webp({ quality: 80 })
       .toBuffer()
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "avatars")
-    await fs.mkdir(uploadDir, { recursive: true })
+    const uploadedUrl = await uploadBuffer(optimized, `avatars/${userId}`, "image/webp")
 
-    const fileName = `${userId}-${Date.now()}.webp`
-    const diskPath = path.join(uploadDir, fileName)
-    await fs.writeFile(diskPath, optimized)
-
-    const publicPath = `/uploads/avatars/${fileName}`
-
-    if (user.avatarUrl && user.avatarUrl.startsWith("/uploads/avatars/")) {
-      const oldPath = path.join(process.cwd(), "public", user.avatarUrl.replace(/^\/+/, ""))
-      fs.unlink(oldPath).catch(() => null)
-    }
-
-    user.avatarUrl = publicPath
+    user.avatarUrl = uploadedUrl
     await user.save()
 
     return NextResponse.json({
