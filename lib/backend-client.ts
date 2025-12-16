@@ -66,6 +66,13 @@ export const backend = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  listReports: (query: string) =>
+    backendFetch<{ data: any[] }>(`/api/admin/reports${query ? `?${query}` : ""}`),
+  updateReport: (id: string, body: any) =>
+    backendFetch<{ data: any }>(`/api/admin/reports/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
   health: () => backendFetch<{ ok: boolean; message?: string }>(`/api/health`),
   uploadAvatar: (formData: FormData) =>
     backendFetchForm<{ data: any; message?: string }>(`/api/profile/avatar`, formData),

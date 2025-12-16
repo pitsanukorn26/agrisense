@@ -3,12 +3,13 @@ import { NextResponse } from "next/server"
 import { getAdminFromRequest } from "@/lib/admin-auth"
 import { connectToDatabase } from "@/lib/mongodb"
 import { ReportModel } from "@/models/Report"
+import { backend, backendProxyEnabled } from "@/lib/backend-client"
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  await connectToDatabase()
+  const { id } = await params
 
   const auth = await getAdminFromRequest(request)
   if (!auth.ok) {
@@ -31,7 +32,14 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid status" }, { status: 400 })
   }
 
-  const report = await ReportModel.findById(params.id)
+  if (backendProxyEnabled) {
+    const response = await backend.updateReport(id, { status, resolutionNote })
+    return NextResponse.json(response)
+  }
+
+  await connectToDatabase()
+
+  const report = await ReportModel.findById(id)
   if (!report) {
     return NextResponse.json({ error: "Report not found" }, { status: 404 })
   }

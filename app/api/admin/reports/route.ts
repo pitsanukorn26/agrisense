@@ -3,14 +3,22 @@ import { NextResponse } from "next/server"
 import { getAdminFromRequest } from "@/lib/admin-auth"
 import { connectToDatabase } from "@/lib/mongodb"
 import { ReportModel } from "@/models/Report"
+import { backend, backendProxyEnabled } from "@/lib/backend-client"
 
 export async function GET(request: Request) {
-  await connectToDatabase()
-
   const auth = await getAdminFromRequest(request)
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status })
   }
+
+  if (backendProxyEnabled) {
+    const { searchParams } = new URL(request.url)
+    const query = searchParams.toString()
+    const response = await backend.listReports(query)
+    return NextResponse.json(response)
+  }
+
+  await connectToDatabase()
 
   const { searchParams } = new URL(request.url)
   const statusFilter = searchParams.get("status")
