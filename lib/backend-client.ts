@@ -66,6 +66,15 @@ export const backend = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  listAdminUsers: (query: string) =>
+    backendFetch<{ data: any[] }>(`/api/admin/users${query ? `?${query}` : ""}`),
+  listAdminLogs: (query: string) =>
+    backendFetch<{ data: any[] }>(`/api/admin/logs${query ? `?${query}` : ""}`),
+  createAdminLog: (body: any) =>
+    backendFetch<{ data: any }>(`/api/admin/logs`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   listReports: (query: string) =>
     backendFetch<{ data: any[] }>(`/api/admin/reports${query ? `?${query}` : ""}`),
   updateReport: (id: string, body: any) =>

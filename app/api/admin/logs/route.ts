@@ -3,16 +3,24 @@ import { NextResponse } from "next/server"
 import { getAdminFromRequest } from "@/lib/admin-auth"
 import { connectToDatabase } from "@/lib/mongodb"
 import { AdminLogModel } from "@/models/AdminLog"
+import { backend, backendProxyEnabled } from "@/lib/backend-client"
 
 const VALID_ACTIONS = ["role.promote", "role.demote", "role.update", "custom"]
 
 export async function GET(request: Request) {
-  await connectToDatabase()
-
   const auth = await getAdminFromRequest(request)
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status })
   }
+
+  if (backendProxyEnabled) {
+    const { searchParams } = new URL(request.url)
+    const query = searchParams.toString()
+    const response = await backend.listAdminLogs(query)
+    return NextResponse.json(response)
+  }
+
+  await connectToDatabase()
 
   const { searchParams } = new URL(request.url)
   const limitParam = Number.parseInt(searchParams.get("limit") ?? "25", 10)
@@ -36,12 +44,28 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  await connectToDatabase()
-
   const auth = await getAdminFromRequest(request)
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status })
   }
+
+  if (backendProxyEnabled) {
+    const body = await request.json().catch(() => null)
+    if (!body) {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
+    const response = await backend.createAdminLog({
+      ...(body as object),
+      actor: {
+        id: auth.admin.id,
+        email: auth.admin.email,
+        name: auth.admin.name,
+      },
+    })
+    return NextResponse.json(response, { status: 201 })
+  }
+
+  await connectToDatabase()
 
   let body: unknown
   try {

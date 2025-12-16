@@ -4,18 +4,26 @@ import { getAdminFromRequest } from "@/lib/admin-auth"
 import { sanitizeUser } from "@/lib/auth"
 import { connectToDatabase } from "@/lib/mongodb"
 import { UserModel } from "@/models/User"
+import { backend, backendProxyEnabled } from "@/lib/backend-client"
 
 function escapeRegex(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
 export async function GET(request: Request) {
-  await connectToDatabase()
-
   const auth = await getAdminFromRequest(request)
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status })
   }
+
+  if (backendProxyEnabled) {
+    const { searchParams } = new URL(request.url)
+    const query = searchParams.toString()
+    const response = await backend.listAdminUsers(query)
+    return NextResponse.json(response)
+  }
+
+  await connectToDatabase()
 
   const { searchParams } = new URL(request.url)
   const search = searchParams.get("search")?.trim()
