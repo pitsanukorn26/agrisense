@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import { Navigation } from "@/components/navigation"
 import { Button } from "@/components/ui/button"
@@ -58,6 +58,13 @@ type ScanHistoryItem = {
   severity?: string
   severityLocal?: string
   notes?: string
+}
+
+const normalizeMetadata = (meta: any) => {
+  if (!meta) return {}
+  if (meta instanceof Map) return Object.fromEntries(meta.entries())
+  if (typeof meta === "object" && !Array.isArray(meta)) return meta as Record<string, unknown>
+  return {}
 }
 
 const historyNoteTranslationMap: Record<string, string> = {
@@ -198,29 +205,49 @@ export default function DiagnosisPage() {
         const payload = await response.json()
         const items = Array.isArray(payload?.data) ? payload.data : []
         const mapped: ScanHistoryItem[] = items.map((scan: any) => {
-          const metadata =
-            (scan.metadata as Record<string, unknown> | undefined) ?? {}
+          const metadata = normalizeMetadata(scan.metadata)
+          const pickLabel = (...values: unknown[]) => {
+            for (const v of values) {
+              if (typeof v === "string" && v.trim()) return v.trim()
+            }
+            return undefined
+          }
+
+          const localeDisease = pickLabel(
+            scan.diseaseLocal,
+            metadata.localeDisease,
+            metadata.diseaseLocal,
+          )
+
+          const rawLabel = pickLabel(scan.label, scan.result?.label, localeDisease)
+
           return {
             id: scan.id,
             createdAt: scan.createdAt,
             processedAt: scan.processedAt,
             status: scan.status,
-            label:
-              typeof scan.result?.label === "string"
-                ? formatDiseaseLabel(scan.result.label)
+            label: rawLabel
+              ? formatDiseaseLabel(rawLabel)
+              : scan.status === "completed"
+                ? "ผลลัพธ์ไม่ถูกบันทึก"
                 : "Pending analysis",
             // diseaseLocal is derived at render time from label
-            diseaseLocal: undefined,
+            diseaseLocal: localeDisease,
             confidence:
-              typeof scan.result?.confidence === "number"
-                ? Math.round(scan.result.confidence * 100)
-                : undefined,
+              typeof scan.confidence === "number"
+                ? scan.confidence
+                : typeof scan.result?.confidence === "number"
+                  ? Math.round(scan.result.confidence * 100)
+                  : undefined,
             severity:
-              (metadata.severity as string | undefined) ?? scan.result?.severity,
+              (scan.severity as string | undefined) ??
+              (scan.result?.severity as string | undefined) ??
+              (metadata.severity as string | undefined) ??
+              (metadata.severityLocal as string | undefined),
             severityLocal:
               (metadata.severityLocal as string | undefined) ??
               (metadata.severity as string | undefined),
-            notes: scan.result?.notes,
+            notes: (scan.notes as string | undefined) ?? (scan.result?.notes as string | undefined),
           }
         })
         setHistory(mapped)
@@ -420,6 +447,23 @@ export default function DiagnosisPage() {
       setResult(computedResult)
 
       if (!isGuest && !persistenceDisabled && scanId) {
+        // Optimistic update เพื่อให้ประวัติแสดงชื่อโรคทันทีแม้ backend บันทึกไม่สำเร็จ
+        setHistory((prev) => [
+          {
+            id: scanId,
+            createdAt: new Date().toISOString(),
+            processedAt: new Date().toISOString(),
+            status: "completed",
+            label: formatDiseaseLabel(computedResult.disease),
+            diseaseLocal: computedResult.diseaseLocal,
+            confidence: computedResult.confidence,
+            severity: computedResult.severity,
+            severityLocal: computedResult.severityLocal,
+            notes: computedResult.recommendation,
+          },
+          ...prev.filter((h) => h.id !== scanId),
+        ])
+
         try {
           await fetch(`/api/scans/${scanId}/complete`, {
             method: "POST",
@@ -900,11 +944,18 @@ export default function DiagnosisPage() {
                           : scan.severity ?? scan.severityLocal
                       const severityText =
                         translateSeverity(severitySource) ?? severitySource ?? scan.status
+                      const labelFallback =
+                        !scan.label && result && scan.status === "completed"
+                          ? formatDiseaseLabel(result.disease)
+                          : scan.label
                       const diagnosisText =
                         language === "th"
-                          ? getThaiDiseaseName(scan.label)
-                          : scan.label ?? getThaiDiseaseName(scan.label)
-                      const noteText = translateHistoryNote(scan.notes) ?? scan.notes
+                          ? getThaiDiseaseName(labelFallback)
+                          : labelFallback ?? getThaiDiseaseName(labelFallback)
+                      const noteText =
+                        translateHistoryNote(scan.notes ?? result?.recommendation) ??
+                        scan.notes ??
+                        result?.recommendation
                       const statusText = translateStatus(scan.status)
                       const timestampText = formatDateTime(scan.processedAt ?? scan.createdAt, {
                         locale: language === "en" ? "en-GB" : "th-TH",

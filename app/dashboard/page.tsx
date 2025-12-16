@@ -198,23 +198,27 @@ function buildScanDetailFromApi(scan: any): ScanDetail {
   const metadata = normalizeMetadata(scan?.metadata ?? null)
 
   const severity =
+    (scan?.severity as string | undefined) ??
+    (scan?.result?.severity as string | undefined) ??
     (metadata?.["severity"] as string | undefined) ??
-    (metadata?.["severityLocal"] as string | undefined) ??
-    (scan?.result?.severity as string | undefined)
+    (metadata?.["severityLocal"] as string | undefined)
 
   const diseaseLocal =
+    (scan?.diseaseLocal as string | undefined) ??
     (metadata?.["localeDisease"] as string | undefined) ??
     (metadata?.["diseaseLocal"] as string | undefined)
 
   const label =
-    (scan?.result?.label as string | undefined) ??
     (scan?.label as string | undefined) ??
+    (scan?.result?.label as string | undefined) ??
     diseaseLocal
 
   const confidence =
-    typeof scan?.result?.confidence === "number"
-      ? Math.round(scan.result.confidence * 100)
-      : undefined
+    typeof scan?.confidence === "number"
+      ? scan.confidence
+      : typeof scan?.result?.confidence === "number"
+        ? Math.round(scan.result.confidence * 100)
+        : undefined
 
   return {
     id: scan?.id ?? scan?._id?.toString?.(),
@@ -226,7 +230,7 @@ function buildScanDetailFromApi(scan: any): ScanDetail {
     diseaseLocal,
     severity,
     confidence,
-    notes: scan?.result?.notes ?? scan?.notes,
+    notes: scan?.notes ?? scan?.result?.notes,
     imageUrl: scan?.imageUrl,
     thumbnailUrl: scan?.thumbnailUrl,
     modelVersion: scan?.modelVersion,
@@ -389,7 +393,19 @@ export default function DashboardPage() {
       const payload = await response.json()
       const data = payload?.data
       if (data) {
-        setDetailScan(buildScanDetailFromApi(data))
+        // merge base values to avoid losing label/severity/confidence if backend returns partial
+        setDetailScan((prev) => {
+          const merged = buildScanDetailFromApi(data)
+          return {
+            ...prev,
+            ...merged,
+            label: merged.label ?? prev?.label ?? baseScan?.label,
+            diseaseLocal: merged.diseaseLocal ?? prev?.diseaseLocal ?? baseScan?.diseaseLocal,
+            severity: merged.severity ?? prev?.severity ?? baseScan?.severity,
+            confidence: merged.confidence ?? prev?.confidence ?? baseScan?.confidence,
+            notes: merged.notes ?? prev?.notes ?? baseScan?.notes,
+          }
+        })
       }
     } catch (error) {
       console.error(error)
@@ -566,33 +582,43 @@ export default function DashboardPage() {
           const metadata = (scan.metadata as Record<string, unknown> | undefined) ?? {}
 
           const severity =
+            (scan.severity as string | undefined) ??
+            (scan.result?.severity as string | undefined) ??
             (metadata.severity as string | undefined) ??
-            (metadata.severityLocal as string | undefined) ??
-            (scan.result?.severity as string | undefined)
+            (metadata.severityLocal as string | undefined)
 
-          const localLabel =
-            (metadata.localeDisease as string | undefined) ??
-            (metadata.diseaseLocal as string | undefined)
+          const pickLabel = (...values: unknown[]) => {
+            for (const v of values) {
+              if (typeof v === "string" && v.trim()) return v.trim()
+            }
+            return undefined
+          }
 
-          const englishLabel =
-            (scan.result?.label as string | undefined) ??
-            (scan.label as string | undefined)
+          const localLabel = pickLabel(
+            scan.diseaseLocal,
+            metadata.localeDisease,
+            metadata.diseaseLocal,
+          )
+
+          const englishLabel = pickLabel(scan.label, scan.result?.label, metadata.label, localLabel)
 
           const confidence =
-            typeof scan.result?.confidence === "number"
-              ? Math.round(scan.result.confidence * 100)
-              : undefined
+            typeof scan.confidence === "number"
+              ? scan.confidence
+              : typeof scan.result?.confidence === "number"
+                ? Math.round(scan.result.confidence * 100)
+                : undefined
 
           return {
             id: scan.id,
             createdAt: scan.createdAt,
             processedAt: scan.processedAt,
             status: scan.status,
-            label: englishLabel ?? localLabel ?? undefined,
+            label: englishLabel ?? localLabel ?? (scan.status === "completed" ? "ผลลัพธ์ไม่ถูกบันทึก" : undefined),
             severity,
             diseaseLocal: localLabel,
             confidence,
-            notes: scan.result?.notes as string | undefined,
+            notes: (scan.notes as string | undefined) ?? (scan.result?.notes as string | undefined),
           }
         })
 
@@ -694,13 +720,59 @@ export default function DashboardPage() {
           "",
       })
     : ""
-  const detailDiagnosis = detailScan
-    ? formatDiagnosis(detailScan.label, detailScan.diseaseLocal) || t("dashboard.pendingAnalysis")
-    : t("dashboard.pendingAnalysis")
+
+  const deriveLabel = (scan?: ScanDetail | null) => {
+    if (!scan) return null
+    const meta = scan.metadata as Record<string, any> | undefined
+    return (
+      scan.label ||
+      scan.result?.label ||
+      meta?.localeDisease ||
+      meta?.diseaseLocal ||
+      scan.diseaseLocal ||
+      null
+    )
+  }
+
+  const deriveSeverity = (scan?: ScanDetail | null) => {
+    if (!scan) return null
+    const meta = scan.metadata as Record<string, any> | undefined
+    return scan.severity || scan.result?.severity || meta?.severity || meta?.severityLocal || null
+  }
+
+  const deriveConfidence = (scan?: ScanDetail | null) => {
+    if (!scan) return null
+    if (typeof scan.confidence === "number") return scan.confidence
+    if (typeof scan.result?.confidence === "number")
+      return Math.round(scan.result.confidence * 100)
+    return null
+  }
+
+  const derivedLabel = deriveLabel(detailScan)
+  const derivedSeverity = deriveSeverity(detailScan)
+  const derivedConfidence = deriveConfidence(detailScan)
+
+  const detailDiagnosis =
+    derivedLabel && detailScan
+      ? formatDiagnosis(derivedLabel, detailScan.diseaseLocal) ||
+        formatDiagnosis(detailScan.label, detailScan.diseaseLocal) ||
+        t("dashboard.pendingAnalysis")
+      : detailScan
+        ? formatDiagnosis(detailScan.label, detailScan.diseaseLocal) || t("dashboard.pendingAnalysis")
+        : t("dashboard.pendingAnalysis")
   const detailStatus = detailScan ? translateStatus(detailScan.status) : "-"
   const detailSeverity =
-    detailScan ? translateSeverity(detailScan.severity) ?? detailScan.severity ?? "-" : "-"
-  const detailConfidence = detailScan ? formatConfidence(detailScan.confidence) ?? "-" : "-"
+    derivedSeverity && detailScan
+      ? translateSeverity(derivedSeverity) ?? derivedSeverity ?? "-"
+      : detailScan
+        ? translateSeverity(detailScan.severity) ?? detailScan.severity ?? "-"
+        : "-"
+  const detailConfidence =
+    detailScan && derivedConfidence !== null
+      ? formatConfidence(derivedConfidence) ?? "-"
+      : detailScan
+        ? formatConfidence(detailScan.confidence) ?? "-"
+        : "-"
   const detailNoteDisplay =
     detailScan ? translateNote(detailScan.notes) ?? detailScan.notes ?? null : null
   const detailCreatedAt = formatDateTime(detailScan?.createdAt, {
@@ -721,6 +793,7 @@ export default function DashboardPage() {
   const heroSubtitle = showAuthenticatedContent
     ? t("dashboard.profileDescription")
     : t("dashboard.loginPromptDescription")
+
   const heroSection = (
     <section className="relative isolate h-72 w-full overflow-hidden bg-gray-900 sm:h-80 lg:h-[360px]">
       <Image
@@ -917,12 +990,15 @@ export default function DashboardPage() {
                     <div className="py-8 text-center text-sm text-gray-500">{t("dashboard.historyEmpty")}</div>
                   ) : (
                       <div className="space-y-4">
-                      {scans.map((scan) => {
-                        const severityLabel = translateSeverity(scan.severity)
-                        const statusLabel = translateStatus(scan.status)
-                        const confidenceLabel = formatConfidence(scan.confidence)
-                        const diagnosisText =
-                          formatDiagnosis(scan.label, scan.diseaseLocal) || t("dashboard.pendingAnalysis")
+                    {scans.map((scan) => {
+                      const severityLabel = translateSeverity(scan.severity)
+                      const statusLabel = translateStatus(scan.status)
+                      const confidenceLabel = formatConfidence(scan.confidence)
+                      const diagnosisText =
+                          formatDiagnosis(scan.label, scan.diseaseLocal) ||
+                          (scan.status === "completed"
+                            ? t("dashboard.resultNotSaved")
+                            : t("dashboard.pendingAnalysis"))
                         const noteText = translateNote(scan.notes) ?? scan.notes
                         const timestampText = formatDateTime(scan.processedAt ?? scan.createdAt, {
                           locale: dateLocale,

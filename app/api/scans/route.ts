@@ -1,9 +1,51 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
-import { connectToDatabase } from "@/lib/mongodb"
-import { ScanModel } from "@/models/Scan"
 import { backend, backendProxyEnabled } from "@/lib/backend-client"
+
+const normalizeMetadata = (meta: any) => {
+  if (!meta) return {}
+  if (meta instanceof Map) return Object.fromEntries(meta.entries())
+  if (typeof meta === "object" && !Array.isArray(meta)) return meta as Record<string, unknown>
+  return {}
+}
+
+const pickLabel = (...values: unknown[]) => {
+  for (const v of values) {
+    if (typeof v === "string" && v.trim()) return v.trim()
+  }
+  return undefined
+}
+
+const deriveScan = (scan: any) => {
+  const metadata = normalizeMetadata(scan?.metadata)
+  const severity =
+    scan?.severity ??
+    scan?.result?.severity ??
+    (metadata.severity as string | undefined) ??
+    (metadata.severityLocal as string | undefined)
+  const diseaseLocal =
+    scan?.diseaseLocal ??
+    (metadata.localeDisease as string | undefined) ??
+    (metadata.diseaseLocal as string | undefined)
+  const label = pickLabel(scan?.label, scan?.result?.label, metadata.label, diseaseLocal)
+  const confidence =
+    typeof scan?.confidence === "number"
+      ? scan.confidence
+      : typeof scan?.result?.confidence === "number"
+        ? Math.round(scan.result.confidence * 100)
+        : undefined
+
+  return {
+    id: scan?.id ?? scan?._id?.toString?.(),
+    ...scan,
+    metadata,
+    label,
+    diseaseLocal,
+    severity,
+    confidence,
+  }
+}
 
 const urlOrDataUri = z
   .string()
@@ -31,51 +73,27 @@ const createScanSchema = z.object({
 })
 
 export async function GET(request: Request) {
-  if (backendProxyEnabled) {
-    const { searchParams } = new URL(request.url)
-    const query = searchParams.toString()
-    const response = await backend.listScans(query)
-    return NextResponse.json({ data: response.data })
+  if (!backendProxyEnabled) {
+    return NextResponse.json(
+      { error: "BACKEND_API_URL is not configured; please enable backend proxy." },
+      { status: 500 },
+    )
   }
-
-  await connectToDatabase()
 
   const { searchParams } = new URL(request.url)
-  const status = searchParams.get("status")
-  const userId = searchParams.get("userId")
-  const limitParam = Number.parseInt(searchParams.get("limit") ?? "20", 10)
-
-  const limit = Number.isNaN(limitParam) ? 20 : Math.min(limitParam, 100)
-
-  const filter: Record<string, unknown> = {}
-  if (status) {
-    filter.status = status
-  }
-  if (userId) {
-    filter.user = userId
-  }
-
-  const scans = await ScanModel.find(filter)
-    .sort({ createdAt: -1 })
-    .limit(limit)
-    .lean()
-
-  const payload = scans.map((scan) => ({
-    id: scan._id.toString(),
-    ...scan,
-  }))
-
-  return NextResponse.json({ data: payload })
+  const query = searchParams.toString()
+  const response = await backend.listScans(query)
+  const mapped = Array.isArray(response?.data) ? response.data.map(deriveScan) : []
+  return NextResponse.json({ data: mapped })
 }
 
 export async function POST(request: Request) {
-  if (backendProxyEnabled) {
-    const json = await request.json()
-    const response = await backend.createScan(json)
-    return NextResponse.json(response, { status: 201 })
+  if (!backendProxyEnabled) {
+    return NextResponse.json(
+      { error: "BACKEND_API_URL is not configured; please enable backend proxy." },
+      { status: 500 },
+    )
   }
-
-  await connectToDatabase()
 
   const json = await request.json()
   const parsed = createScanSchema.safeParse(json)
@@ -90,22 +108,6 @@ export async function POST(request: Request) {
     )
   }
 
-  const { userId, ...rest } = parsed.data
-
-  const scan = await ScanModel.create({
-    ...rest,
-    user: userId,
-  })
-
-  return NextResponse.json(
-    {
-      message: "Scan queued",
-      data: {
-        id: scan._id.toString(),
-        status: scan.status,
-        createdAt: scan.createdAt,
-      },
-    },
-    { status: 201 },
-  )
+  const response = await backend.createScan(parsed.data)
+  return NextResponse.json(response, { status: 201 })
 }
