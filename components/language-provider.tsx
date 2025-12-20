@@ -434,8 +434,8 @@ const translations = {
     // Diagnosis Page
     "diagnosis.title": "วินิจฉัยโรคพืช",
     "diagnosis.subtitle": "ผลลัพธ์จะถูกบันทึกลงฐานข้อมูลอัตโนมัติเมื่อการวิเคราะห์เสร็จสิ้น",
-    "diagnosis.upload": "อัปโหลดรูปใบไม้",
-    "diagnosis.uploadHint": "อัปโหลดรูปใบไม้ให้ชัดเพื่อใช้วิเคราะห์",
+    "diagnosis.upload": "อัปโหลดรูปใบข้าว",
+    "diagnosis.uploadHint": "อัปโหลดรูปใบข้าวให้ชัดเพื่อใช้วิเคราะห์",
     "diagnosis.analyze": "วิเคราะห์",
     "diagnosis.result": "ผลการวินิจฉัย",
     "diagnosis.resultHint": "ผลการวิเคราะห์จาก AI จะแสดงที่นี่",
