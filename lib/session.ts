@@ -6,6 +6,12 @@ type SessionPayload = {
   role: "farmer" | "expert" | "admin"
   iat: number
   nonce?: string
+  name?: string
+  organization?: string
+  plan?: "free" | "pro" | "enterprise"
+  avatarUrl?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 const SESSION_SECRET =

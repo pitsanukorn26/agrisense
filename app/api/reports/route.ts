@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server"
 
+import { backend, backendProxyEnabled } from "@/lib/backend-client"
 import { getSessionFromRequest } from "@/lib/session"
 import { connectToDatabase } from "@/lib/mongodb"
 import { ReportModel } from "@/models/Report"
 import { ScanModel } from "@/models/Scan"
 
 export async function POST(request: Request) {
-  await connectToDatabase()
-
   let body: unknown
   try {
     body = await request.json()
@@ -23,13 +22,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "กรุณาระบุเหตุผลในการรายงาน" }, { status: 400 })
   }
 
+  const session = getSessionFromRequest(request)
+  const createdBy = session?.sub
+
+  if (backendProxyEnabled) {
+    const response = await backend.createReport({
+      scanId,
+      reason: reason.trim(),
+      createdBy: createdBy ?? undefined,
+    })
+    return NextResponse.json(response, { status: 201 })
+  }
+
+  await connectToDatabase()
+
   const scan = await ScanModel.findById(scanId)
   if (!scan) {
     return NextResponse.json({ error: "ไม่พบคำขอวิเคราะห์ที่ต้องการรายงาน" }, { status: 404 })
   }
-
-  const session = getSessionFromRequest(request)
-  const createdBy = session?.sub
 
   const report = await ReportModel.create({
     scan: scan._id,

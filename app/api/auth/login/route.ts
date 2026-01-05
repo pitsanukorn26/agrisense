@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
+import { backend, backendProxyEnabled } from "@/lib/backend-client"
 import { ensureRootAdmin } from "@/lib/root-admin"
 import { getSessionCookieOptions, signSessionToken } from "@/lib/session"
 import { sanitizeUser } from "@/lib/auth"
@@ -14,9 +15,6 @@ const loginSchema = z.object({
 })
 
 export async function POST(request: Request) {
-  await connectToDatabase()
-  await ensureRootAdmin()
-
   const body = await request.json()
   const parsed = loginSchema.safeParse(body)
 
@@ -29,6 +27,53 @@ export async function POST(request: Request) {
 
   const { email, password } = parsed.data
   const normalizedEmail = email.toLowerCase()
+
+  if (backendProxyEnabled) {
+    try {
+      const response = await backend.login({ email: normalizedEmail, password })
+      const user = response?.data
+
+      if (!user?.id) {
+        return NextResponse.json(
+          { error: "Invalid session payload" },
+          { status: 502 },
+        )
+      }
+
+      const sessionToken = signSessionToken({
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+        iat: Date.now(),
+        name: user.name,
+        organization: user.organization,
+        plan: user.plan ?? "free",
+        avatarUrl: user.avatarUrl,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      })
+
+      const responseJson = NextResponse.json({
+        message: "Login successful",
+        data: user,
+      })
+
+      responseJson.cookies.set(getSessionCookieOptions(sessionToken))
+
+      return responseJson
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to login"
+      const status =
+        typeof (error as { status?: number }).status === "number"
+          ? (error as { status?: number }).status
+          : 502
+      return NextResponse.json({ error: message }, { status })
+    }
+  }
+
+  await connectToDatabase()
+  await ensureRootAdmin()
 
   const user = await UserModel.findOne({ email: normalizedEmail })
 

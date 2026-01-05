@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
+import { backend, backendProxyEnabled } from "@/lib/backend-client"
 import { getAdminFromRequest } from "@/lib/admin-auth"
 import { sanitizeUser } from "@/lib/auth"
 import { recordAdminLog } from "@/lib/admin-log"
@@ -17,8 +18,6 @@ type RouteParams = {
 }
 
 export async function PATCH(request: Request, { params }: RouteParams) {
-  await connectToDatabase()
-
   const auth = await getAdminFromRequest(request)
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status })
@@ -34,6 +33,20 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   }
 
   const { id } = params
+
+  if (backendProxyEnabled) {
+    const response = await backend.updateAdminUserRole(id, {
+      role: parsed.data.role,
+      actor: {
+        id: auth.admin.id,
+        email: auth.admin.email,
+        name: auth.admin.name,
+      },
+    })
+    return NextResponse.json(response)
+  }
+
+  await connectToDatabase()
 
   const user = await UserModel.findById(id)
   if (!user) {

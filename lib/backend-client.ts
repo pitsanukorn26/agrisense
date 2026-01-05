@@ -20,7 +20,9 @@ async function backendFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const message = json?.error || `Backend request failed: ${response.status}`
-    throw new Error(message)
+    const error = new Error(message) as Error & { status?: number }
+    error.status = response.status
+    throw error
   }
 
   return json as T
@@ -40,13 +42,25 @@ async function backendFetchForm<T>(path: string, formData: FormData): Promise<T>
 
   if (!response.ok) {
     const message = json?.error || `Backend request failed: ${response.status}`
-    throw new Error(message)
+    const error = new Error(message) as Error & { status?: number }
+    error.status = response.status
+    throw error
   }
 
   return json as T
 }
 
 export const backend = {
+  login: (body: any) =>
+    backendFetch<{ data: any }>(`/api/auth/login`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  register: (body: any) =>
+    backendFetch<{ data: any }>(`/api/auth/register`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   getScan: (id: string) => backendFetch<{ data: any }>(`/api/scans/${id}`),
   listScans: (query: string) =>
     backendFetch<{ data: any[] }>(`/api/scans${query ? `?${query}` : ""}`),
@@ -68,6 +82,11 @@ export const backend = {
     }),
   listAdminUsers: (query: string) =>
     backendFetch<{ data: any[] }>(`/api/admin/users${query ? `?${query}` : ""}`),
+  updateAdminUserRole: (id: string, body: any) =>
+    backendFetch<{ data: any }>(`/api/admin/users/${id}/role`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
   listAdminLogs: (query: string) =>
     backendFetch<{ data: any[] }>(`/api/admin/logs${query ? `?${query}` : ""}`),
   createAdminLog: (body: any) =>
@@ -79,6 +98,24 @@ export const backend = {
     backendFetch<{ data: any[] }>(`/api/admin/reports${query ? `?${query}` : ""}`),
   updateReport: (id: string, body: any) =>
     backendFetch<{ data: any }>(`/api/admin/reports/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  createReport: (body: any) =>
+    backendFetch<{ data: any }>(`/api/reports`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  listDiseases: (query: string) =>
+    backendFetch<{ data: any[] }>(`/api/diseases${query ? `?${query}` : ""}`),
+  createDisease: (body: any) =>
+    backendFetch<{ data: any }>(`/api/diseases`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  getDisease: (id: string) => backendFetch<{ data: any }>(`/api/diseases/${id}`),
+  updateDisease: (id: string, body: any) =>
+    backendFetch<{ data: any }>(`/api/diseases/${id}`, {
       method: "PATCH",
       body: JSON.stringify(body),
     }),

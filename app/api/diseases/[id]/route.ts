@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { Types } from "mongoose"
 
+import { backend, backendProxyEnabled } from "@/lib/backend-client"
 import { connectToDatabase } from "@/lib/mongodb"
 import { requireElevatedUser } from "@/lib/role-guard"
 import { DiseaseProfileModel } from "@/models/DiseaseProfile"
@@ -38,12 +39,17 @@ function serialize(record: any) {
 }
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
-  await connectToDatabase()
-
   const auth = await requireElevatedUser(request)
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status })
   }
+
+  if (backendProxyEnabled) {
+    const response = await backend.getDisease(params.id)
+    return NextResponse.json(response)
+  }
+
+  await connectToDatabase()
 
   if (!Types.ObjectId.isValid(params.id)) {
     return NextResponse.json({ error: "Invalid identifier" }, { status: 400 })
@@ -58,12 +64,27 @@ export async function GET(request: Request, { params }: { params: { id: string }
 }
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
-  await connectToDatabase()
-
   const auth = await requireElevatedUser(request)
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status })
   }
+
+  if (backendProxyEnabled) {
+    const json = await request.json().catch(() => null)
+    const parsed = partialDiseaseSchema.safeParse(json)
+
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid payload", details: parsed.error.flatten() }, { status: 400 })
+    }
+
+    const response = await backend.updateDisease(params.id, {
+      ...parsed.data,
+      reviewedBy: auth.user.id,
+    })
+    return NextResponse.json(response)
+  }
+
+  await connectToDatabase()
 
   if (!Types.ObjectId.isValid(params.id)) {
     return NextResponse.json({ error: "Invalid identifier" }, { status: 400 })

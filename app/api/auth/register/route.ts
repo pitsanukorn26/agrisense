@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
+import { backend, backendProxyEnabled } from "@/lib/backend-client"
 import { connectToDatabase } from "@/lib/mongodb"
 import { UserModel } from "@/models/User"
 import { sanitizeUser } from "@/lib/auth"
@@ -15,8 +16,6 @@ const registerSchema = z.object({
 })
 
 export async function POST(request: Request) {
-  await connectToDatabase()
-
   const body = await request.json()
   const parsed = registerSchema.safeParse(body)
 
@@ -32,6 +31,35 @@ export async function POST(request: Request) {
 
   const { email, password, name, role = "farmer", organization } = parsed.data
   const normalizedEmail = email.toLowerCase()
+
+  if (backendProxyEnabled) {
+    try {
+      const response = await backend.register({
+        name,
+        email: normalizedEmail,
+        password,
+        role,
+        organization,
+      })
+      return NextResponse.json(
+        {
+          message: "Account created",
+          data: response?.data,
+        },
+        { status: 201 },
+      )
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to register"
+      const status =
+        typeof (error as { status?: number }).status === "number"
+          ? (error as { status?: number }).status
+          : 502
+      return NextResponse.json({ error: message }, { status })
+    }
+  }
+
+  await connectToDatabase()
 
   const existingUser = await UserModel.findOne({ email: normalizedEmail }).lean()
   if (existingUser) {

@@ -1,4 +1,5 @@
 import { sanitizeUser, type AuthPayload } from "@/lib/auth"
+import { backendProxyEnabled } from "@/lib/backend-client"
 import { getSessionFromRequest } from "@/lib/session"
 import { UserModel } from "@/models/User"
 
@@ -15,6 +16,27 @@ export async function requireElevatedUser(
   const session = getSessionFromRequest(request)
   if (!session) {
     return { ok: false, status: 401, message: "Unauthorized" }
+  }
+
+  if (backendProxyEnabled) {
+    if (!allowedRoles.includes(session.role as AllowedRole)) {
+      return { ok: false, status: 403, message: "Permission denied" }
+    }
+
+    return {
+      ok: true,
+      user: {
+        id: session.sub,
+        email: session.email,
+        role: session.role,
+        name: session.name,
+        organization: session.organization,
+        plan: session.plan ?? "free",
+        avatarUrl: session.avatarUrl,
+        createdAt: session.createdAt,
+        updatedAt: session.updatedAt,
+      },
+    }
   }
 
   const account = await UserModel.findById(session.sub)

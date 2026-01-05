@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { backend, backendProxyEnabled } from "@/lib/backend-client"
 import { connectToDatabase } from "@/lib/mongodb"
 import { requireElevatedUser } from "@/lib/role-guard"
 import { DiseaseProfileModel } from "@/models/DiseaseProfile"
@@ -35,12 +36,19 @@ function serializeDisease(record: any) {
 }
 
 export async function GET(request: Request) {
-  await connectToDatabase()
-
   const auth = await requireElevatedUser(request)
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status })
   }
+
+  if (backendProxyEnabled) {
+    const { searchParams } = new URL(request.url)
+    const query = searchParams.toString()
+    const response = await backend.listDiseases(query)
+    return NextResponse.json(response)
+  }
+
+  await connectToDatabase()
 
   const { searchParams } = new URL(request.url)
   const crop = searchParams.get("crop")?.toLowerCase()
@@ -75,8 +83,6 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  await connectToDatabase()
-
   const auth = await requireElevatedUser(request)
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status })
@@ -90,6 +96,16 @@ export async function POST(request: Request) {
   }
 
   const payload = parsed.data
+
+  if (backendProxyEnabled) {
+    const response = await backend.createDisease({
+      ...payload,
+      reviewedBy: auth.user.id,
+    })
+    return NextResponse.json(response, { status: 201 })
+  }
+
+  await connectToDatabase()
 
   const created = await DiseaseProfileModel.create({
     crop: payload.crop,

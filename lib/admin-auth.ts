@@ -1,6 +1,7 @@
 "use server"
 
 import { sanitizeUser, type AuthPayload } from "@/lib/auth"
+import { backendProxyEnabled } from "@/lib/backend-client"
 import { getSessionFromRequest } from "@/lib/session"
 import { UserModel } from "@/models/User"
 
@@ -12,6 +13,27 @@ export async function getAdminFromRequest(request: Request): Promise<AdminResult
   const session = getSessionFromRequest(request)
   if (!session) {
     return { ok: false, status: 401, message: "Missing or invalid session" }
+  }
+
+  if (backendProxyEnabled) {
+    if (session.role !== "admin") {
+      return { ok: false, status: 403, message: "Admin privileges required" }
+    }
+
+    return {
+      ok: true,
+      admin: {
+        id: session.sub,
+        email: session.email,
+        role: session.role,
+        name: session.name,
+        organization: session.organization,
+        plan: session.plan ?? "free",
+        avatarUrl: session.avatarUrl,
+        createdAt: session.createdAt,
+        updatedAt: session.updatedAt,
+      },
+    }
   }
 
   const admin = await UserModel.findById(session.sub)

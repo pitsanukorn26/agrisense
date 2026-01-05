@@ -2,10 +2,6 @@ import mongoose from "mongoose"
 
 const { MONGODB_URI } = process.env
 
-if (!MONGODB_URI) {
-  throw new Error("MONGODB_URI is not set. Add it to your environment variables.")
-}
-
 interface MongooseCache {
   conn: typeof mongoose | null
   promise: Promise<typeof mongoose> | null
@@ -22,6 +18,10 @@ if (!global.mongooseCache) {
 }
 
 export async function connectToDatabase() {
+  if (!MONGODB_URI) {
+    throw new Error("MONGODB_URI is not set. Add it to your environment variables.")
+  }
+
   if (cache.conn) {
     return cache.conn
   }
