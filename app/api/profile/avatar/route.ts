@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import { isValidObjectId } from "mongoose"
-import sharp from "sharp"
 
 import { connectToDatabase } from "@/lib/mongodb"
 import { UserModel } from "@/models/User"
@@ -47,6 +46,7 @@ export async function POST(request: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer())
+    const { default: sharp } = await import("sharp")
     const optimized = await sharp(buffer)
       .rotate()
       .resize(512, 512, { fit: "cover" })
