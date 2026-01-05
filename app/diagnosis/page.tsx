@@ -36,6 +36,13 @@ type MockResult = {
   recommendationLocal: string
 }
 
+type GradcamResult = {
+  heatmap?: string | null
+  overlay?: string | null
+  className?: string | null
+  targetLayer?: string | null
+}
+
 type ScanHistoryItem = {
   id: string
   createdAt?: string
@@ -132,6 +139,10 @@ export default function DiagnosisPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [result, setResult] = useState<MockResult | null>(null)
+  const [gradcam, setGradcam] = useState<GradcamResult | null>(null)
+  const [gradcamLoading, setGradcamLoading] = useState(false)
+  const [gradcamError, setGradcamError] = useState<string | null>(null)
+  const [showGradcam, setShowGradcam] = useState(false)
   const [scanError, setScanError] = useState<string | null>(null)
   const [history, setHistory] = useState<ScanHistoryItem[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
@@ -139,6 +150,7 @@ export default function DiagnosisPage() {
   const [historyRefresh, setHistoryRefresh] = useState(0)
   const [persistenceDisabled, setPersistenceDisabled] = useState(false)
   const [persistenceWarning, setPersistenceWarning] = useState<string | null>(null)
+  const canViewGradcam = user?.role === "admin" || user?.role === "expert"
 
   const mockResults = useMemo<MockResult[]>(
     () => [
@@ -267,6 +279,9 @@ export default function DiagnosisPage() {
       reader.onload = (e) => {
         setSelectedImage(e.target?.result as string)
         setResult(null)
+        setGradcam(null)
+        setGradcamError(null)
+        setShowGradcam(false)
         setScanError(null)
       }
       reader.readAsDataURL(file)
@@ -279,6 +294,9 @@ export default function DiagnosisPage() {
 
     setScanError(null)
     setPersistenceWarning(null)
+    setGradcam(null)
+    setGradcamError(null)
+    setShowGradcam(false)
     setIsAnalyzing(true)
 
     let scanId: string | null = null
@@ -514,6 +532,59 @@ export default function DiagnosisPage() {
     }
   }
 
+  const handleToggleGradcam = async () => {
+    if (!selectedImage || isAnalyzing) return
+
+    if (showGradcam) {
+      setShowGradcam(false)
+      return
+    }
+
+    if (gradcam?.overlay || gradcam?.heatmap) {
+      setShowGradcam(true)
+      return
+    }
+
+    setGradcamLoading(true)
+    setGradcamError(null)
+
+    try {
+      const response = await fetch("/api/predict?gradcam=true", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          image: selectedImage,
+        }),
+      })
+
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(payload?.error ?? t("diagnosis.gradcamError"))
+      }
+
+      const gradcamPayload = payload?.data?.gradcam
+      if (!gradcamPayload || (!gradcamPayload?.overlay && !gradcamPayload?.heatmap)) {
+        throw new Error(t("diagnosis.gradcamUnavailable"))
+      }
+
+      setGradcam({
+        heatmap: gradcamPayload.heatmap ?? null,
+        overlay: gradcamPayload.overlay ?? null,
+        className: gradcamPayload.class_name ?? gradcamPayload.className ?? null,
+        targetLayer: gradcamPayload.target_layer ?? gradcamPayload.targetLayer ?? null,
+      })
+      setShowGradcam(true)
+    } catch (error) {
+      setGradcamError(
+        error instanceof Error ? error.message : t("diagnosis.gradcamError"),
+      )
+    } finally {
+      setGradcamLoading(false)
+    }
+  }
+
   const getSeverityColor = (severity: string | undefined) => {
     if (!severity) return "outline"
     switch (severity.toLowerCase()) {
@@ -712,6 +783,9 @@ export default function DiagnosisPage() {
                               reader.onload = (ev) => {
                                 setSelectedImage(ev.target?.result as string)
                                 setResult(null)
+                                setGradcam(null)
+                                setGradcamError(null)
+                                setShowGradcam(false)
                                 setScanError(null)
                               }
                               reader.readAsDataURL(file)
@@ -848,6 +922,75 @@ export default function DiagnosisPage() {
                         </p>
                       </div>
                     </div>
+
+                    {canViewGradcam && (
+                      <div className="rounded-lg border border-dashed border-gray-200 p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-800">Grad-CAM</p>
+                            <p className="text-xs text-gray-500">
+                              {t("diagnosis.gradcamHint")}
+                            </p>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleToggleGradcam}
+                            disabled={gradcamLoading || isAnalyzing}
+                          >
+                            {gradcamLoading
+                              ? t("diagnosis.gradcamLoading")
+                              : showGradcam
+                                ? t("diagnosis.gradcamHide")
+                                : t("diagnosis.gradcam")}
+                          </Button>
+                        </div>
+
+                        {gradcamError && (
+                          <div className="mt-3 rounded-md bg-amber-50 p-2 text-sm text-amber-700">
+                            {gradcamError}
+                          </div>
+                        )}
+
+                        {showGradcam && gradcam && (
+                          <div className="mt-4 space-y-3">
+                            {gradcam.className && (
+                              <p className="text-xs text-gray-500">
+                                {fillTemplate(t("diagnosis.gradcamClass"), {
+                                  value: formatDiseaseLabel(gradcam.className),
+                                })}
+                              </p>
+                            )}
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              {gradcam.overlay && (
+                                <div className="rounded-lg border bg-white p-2">
+                                  <p className="text-xs text-gray-500">
+                                    {t("diagnosis.gradcamOverlay")}
+                                  </p>
+                                  <img
+                                    src={gradcam.overlay}
+                                    alt="Grad-CAM overlay"
+                                    className="mt-2 w-full rounded-md object-contain"
+                                  />
+                                </div>
+                              )}
+                              {gradcam.heatmap && (
+                                <div className="rounded-lg border bg-white p-2">
+                                  <p className="text-xs text-gray-500">
+                                    {t("diagnosis.gradcamHeatmap")}
+                                  </p>
+                                  <img
+                                    src={gradcam.heatmap}
+                                    alt="Grad-CAM heatmap"
+                                    className="mt-2 w-full rounded-md object-contain"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     <div className="rounded-md bg-green-50 p-3 text-sm text-green-700">
                       {user

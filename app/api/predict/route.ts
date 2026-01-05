@@ -31,6 +31,10 @@ function dataUrlToBuffer(dataUrl: string): Buffer {
 }
 
 export async function POST(request: Request) {
+  const requestUrl = new URL(request.url)
+  const gradcamParam = requestUrl.searchParams.get("gradcam")
+  const wantsGradcam = gradcamParam === "true" || gradcamParam === "1"
+
   const riceleafPredictUrl = process.env.RICELEAF_API_PREDICT_URL
   const riceleafBaseUrl = process.env.RICELEAF_API_URL
   const useRiceleaf = Boolean(riceleafPredictUrl || riceleafBaseUrl)
@@ -90,8 +94,19 @@ export async function POST(request: Request) {
     )
   }
 
+  let resolvedEndpoint = endpoint
+  if (useRiceleaf && wantsGradcam) {
+    try {
+      const url = new URL(endpoint)
+      url.searchParams.set("gradcam", "true")
+      resolvedEndpoint = url.toString()
+    } catch (error) {
+      console.error("Invalid prediction endpoint:", error)
+    }
+  }
+
   try {
-    const azureResponse = await fetch(endpoint, {
+    const azureResponse = await fetch(resolvedEndpoint, {
       method: "POST",
       headers: {
         ...(useRiceleaf ? {} : { "Prediction-Key": predictionKey }),

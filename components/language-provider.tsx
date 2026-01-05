@@ -106,6 +106,15 @@ const translations = {
     "diagnosis.loginRequiredLogin": "Login",
     "diagnosis.changeImage": "Change Image",
     "diagnosis.loginToSaveHint": "Please sign in to save results to your history",
+    "diagnosis.gradcam": "Show Grad-CAM",
+    "diagnosis.gradcamHide": "Hide Grad-CAM",
+    "diagnosis.gradcamLoading": "Generating Grad-CAM...",
+    "diagnosis.gradcamHint": "See where the model focused",
+    "diagnosis.gradcamUnavailable": "Grad-CAM is only available with the riceleaf model.",
+    "diagnosis.gradcamError": "Unable to generate Grad-CAM",
+    "diagnosis.gradcamOverlay": "Overlay",
+    "diagnosis.gradcamHeatmap": "Heatmap",
+    "diagnosis.gradcamClass": "Focus class: {value}",
 
     // Knowledge Page
     "knowledge.title": "Plant Care Knowledge",
@@ -459,6 +468,15 @@ const translations = {
     "diagnosis.loginRequiredLogin": "เข้าสู่ระบบ",
     "diagnosis.changeImage": "เปลี่ยนรูป",
     "diagnosis.loginToSaveHint": "โปรดเข้าสู่ระบบเพื่อบันทึกผลลัพธ์ลงประวัติ",
+    "diagnosis.gradcam": "แสดง Grad-CAM",
+    "diagnosis.gradcamHide": "ซ่อน Grad-CAM",
+    "diagnosis.gradcamLoading": "กำลังสร้าง Grad-CAM...",
+    "diagnosis.gradcamHint": "ดูจุดที่โมเดลโฟกัส",
+    "diagnosis.gradcamUnavailable": "Grad-CAM ใช้ได้กับโมเดล riceleaf เท่านั้น",
+    "diagnosis.gradcamError": "ไม่สามารถสร้าง Grad-CAM ได้",
+    "diagnosis.gradcamOverlay": "ภาพซ้อน",
+    "diagnosis.gradcamHeatmap": "ฮีตแมป",
+    "diagnosis.gradcamClass": "คลาสที่โฟกัส: {value}",
 
     // Auth
     "auth.welcomeTitle": "ยินดีต้อนรับสู่ AgriSense",
