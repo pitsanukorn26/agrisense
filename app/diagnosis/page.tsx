@@ -111,6 +111,18 @@ function getThaiDiseaseName(rawLabel: string | undefined | null): string {
     case "narrow brown spot":
       return "โรคใบขีดสีน้ำตาลแคบ";
 
+    case "neck blast":
+      return "โรคไหม้คอรวง";
+
+    case "rice hispa":
+      return "ด้วงหนามข้าว (Rice hispa)";
+
+    case "sheath blight":
+      return "โรคกาบใบไหม้";
+
+    case "tungro":
+      return "โรคใบส้มข้าว (Tungro)";
+
     default:
       return formatDiseaseLabel(rawLabel);
   }

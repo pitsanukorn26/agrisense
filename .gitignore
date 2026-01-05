@@ -24,3 +24,13 @@ pnpm-lock.yaml
 
 # ignore local backend folder
 backend/
+
+# riceleaf-api (python artifacts + model weights)
+riceleaf-api/.venv/
+riceleaf-api/__pycache__/
+riceleaf-api/.pytest_cache/
+riceleaf-api/.mypy_cache/
+riceleaf-api/.ruff_cache/
+riceleaf-api/models/*.pt
+riceleaf-api/models/*.pth
+riceleaf-api/models/*.onnx

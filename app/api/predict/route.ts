@@ -31,12 +31,26 @@ function dataUrlToBuffer(dataUrl: string): Buffer {
 }
 
 export async function POST(request: Request) {
-  const endpoint = process.env.AZURE_CUSTOM_VISION_ENDPOINT
+  const riceleafPredictUrl = process.env.RICELEAF_API_PREDICT_URL
+  const riceleafBaseUrl = process.env.RICELEAF_API_URL
+  const useRiceleaf = Boolean(riceleafPredictUrl || riceleafBaseUrl)
+
+  const endpoint =
+    riceleafPredictUrl ||
+    (riceleafBaseUrl
+      ? new URL("/predict", riceleafBaseUrl).toString()
+      : process.env.AZURE_CUSTOM_VISION_ENDPOINT)
+
   const predictionKey = process.env.AZURE_CUSTOM_VISION_PREDICTION_KEY
 
-  if (!endpoint || !predictionKey) {
+  if (!endpoint || (!useRiceleaf && !predictionKey)) {
     return NextResponse.json(
-      { error: "Prediction service is not configured" },
+      {
+        error: "Prediction service is not configured",
+        details: useRiceleaf
+          ? "Set RICELEAF_API_URL or RICELEAF_API_PREDICT_URL"
+          : "Set AZURE_CUSTOM_VISION_ENDPOINT and AZURE_CUSTOM_VISION_PREDICTION_KEY",
+      },
       { status: 500 },
     )
   }
@@ -80,7 +94,7 @@ export async function POST(request: Request) {
     const azureResponse = await fetch(endpoint, {
       method: "POST",
       headers: {
-        "Prediction-Key": predictionKey,
+        ...(useRiceleaf ? {} : { "Prediction-Key": predictionKey }),
         "Content-Type": "application/octet-stream",
       },
       body: buffer,
@@ -114,4 +128,3 @@ export async function POST(request: Request) {
     )
   }
 }
-
