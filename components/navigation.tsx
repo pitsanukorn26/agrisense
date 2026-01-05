@@ -2,11 +2,19 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Bell, BookOpen, Home, Info, Leaf, LogIn, Shield } from "lucide-react"
+import { Bell, BookOpen, Home, Info, LayoutDashboard, Leaf, LogIn, LogOut, Menu, Shield } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 
 import { useAuth } from "@/components/auth-provider"
 import { useLanguage } from "@/components/language-provider"
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import {
   ALERTS_READ_UPDATED_EVENT,
   ALERTS_PREF_UPDATED_EVENT,
@@ -54,6 +62,12 @@ export function Navigation() {
       active
         ? "bg-white/20 text-white font-semibold"
         : "text-white hover:bg-white/10"
+    )
+
+  const mobileItemClass = (active: boolean) =>
+    clsx(
+      "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+      active ? "bg-emerald-50 text-emerald-900" : "text-gray-700 hover:bg-gray-100"
     )
 
   const readUserKey = useMemo(
@@ -108,6 +122,16 @@ export function Navigation() {
 
   const unreadCount = unreadAlerts.length
 
+  const navItems = [
+    { href: "/", label: t("nav.home"), icon: Home },
+    { href: "/knowledge", label: t("nav.knowledge"), icon: BookOpen },
+    { href: "/about", label: t("nav.about"), icon: Info },
+  ]
+
+  if (user?.role === "admin") {
+    navItems.push({ href: "/admin", label: t("nav.admin"), icon: Shield })
+  }
+
   const openAlert = (alert: StoredAlert, shouldMarkRead = false) => {
     setAlertPopoverOpen(false)
     setSelectedAlert(alert)
@@ -129,37 +153,28 @@ export function Navigation() {
     <nav className="sticky top-0 z-50 w-full bg-[#55AC68] shadow-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
         {/* ซ้าย: โลโก้ + เมนู */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center space-x-2">
             <Leaf className="h-6 w-6 text-white" />
-            <span className="text-lg font-semibold text-white">AgriSense</span>
+            <span className="hidden text-lg font-semibold text-white sm:inline">AgriSense</span>
           </Link>
 
           {/* เมนู */}
-          <div className="flex items-center gap-2">
-            <Link href="/" className={itemClass(isActive("/"))}>
-              <Home className="h-4 w-4" />
-              <span>{t("nav.home")}</span>
-            </Link>
-            <Link href="/knowledge" className={itemClass(isActive("/knowledge"))}>
-              <BookOpen className="h-4 w-4" />
-              <span>{t("nav.knowledge")}</span>
-          </Link>
-          <Link href="/about" className={itemClass(isActive("/about"))}>
-            <Info className="h-4 w-4" />
-            <span>{t("nav.about")}</span>
-          </Link>
-            {user?.role === "admin" && (
-              <Link href="/admin" className={itemClass(isActive("/admin"))}>
-                <Shield className="h-4 w-4" />
-                <span>{t("nav.admin")}</span>
-              </Link>
-            )}
+          <div className="hidden items-center gap-2 md:flex">
+            {navItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <Link key={item.href} href={item.href} className={itemClass(isActive(item.href))}>
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </Link>
+              )
+            })}
           </div>
         </div>
 
         {/* ขวา: ปุ่มภาษา + Login/Register */}
-        <div className="flex items-center gap-3">
+        <div className="hidden items-center gap-3 md:flex">
           {/* ปุ่มภาษา */}
           <Button
             variant="outline"
@@ -228,7 +243,7 @@ export function Navigation() {
                     )}
                   </button>
                 </PopoverTrigger>
-                <PopoverContent align="end" className="w-80 p-0">
+                <PopoverContent align="end" className="w-[calc(100vw-2rem)] p-0 sm:w-80">
                   <div className="border-b px-4 py-2">
                     <p className="text-sm font-semibold text-gray-900">{t("nav.alerts")}</p>
                   </div>
@@ -309,6 +324,126 @@ export function Navigation() {
               </Button>
             </>
           )}
+        </div>
+
+        {/* Mobile menu */}
+        <div className="flex items-center gap-2 md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-white/40 text-white transition hover:bg-white/10"
+                aria-label="Open menu"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full sm:max-w-sm">
+              <SheetHeader className="text-left">
+                <SheetTitle>AgriSense</SheetTitle>
+              </SheetHeader>
+              <div className="mt-6 space-y-6">
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLanguage("th")}
+                    className={clsx(
+                      "flex-1 text-sm",
+                      language === "th"
+                        ? "bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
+                        : "border-emerald-200 text-emerald-700 hover:bg-emerald-50",
+                    )}
+                  >
+                    🇹🇭 ไทย
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLanguage("en")}
+                    className={clsx(
+                      "flex-1 text-sm",
+                      language === "en"
+                        ? "bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
+                        : "border-emerald-200 text-emerald-700 hover:bg-emerald-50",
+                    )}
+                  >
+                    🇺🇸 EN
+                  </Button>
+                </div>
+
+                <nav className="space-y-1">
+                  {navItems.map((item) => {
+                    const Icon = item.icon
+                    return (
+                      <SheetClose asChild key={item.href}>
+                        <Link href={item.href} className={mobileItemClass(isActive(item.href))}>
+                          <Icon className="h-4 w-4" />
+                          <span>{item.label}</span>
+                        </Link>
+                      </SheetClose>
+                    )
+                  })}
+                </nav>
+
+                {user ? (
+                  <div className="space-y-2 border-t pt-4">
+                    <SheetClose asChild>
+                      <Link href="/dashboard" className={mobileItemClass(isActive("/dashboard"))}>
+                        <LayoutDashboard className="h-4 w-4" />
+                        <span>{t("nav.dashboard")}</span>
+                      </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Link href="/dashboard#alerts" className={mobileItemClass(false)}>
+                        <Bell className="h-4 w-4" />
+                        <span>{t("nav.alerts")}</span>
+                        {alertsAllowed && unreadCount > 0 && (
+                          <span className="ml-auto rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+                            {unreadCount}
+                          </span>
+                        )}
+                      </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={logout}
+                        className="w-full justify-start gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        {t("nav.logout")}
+                      </Button>
+                    </SheetClose>
+                  </div>
+                ) : (
+                  <div className="space-y-2 border-t pt-4">
+                    <SheetClose asChild>
+                      <Button
+                        asChild
+                        className="w-full justify-start gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                      >
+                        <Link href="/login">
+                          <LogIn className="h-4 w-4" />
+                          {t("nav.login")}
+                        </Link>
+                      </Button>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="w-full justify-start gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                      >
+                        <Link href="/register">{t("nav.register")}</Link>
+                      </Button>
+                    </SheetClose>
+                  </div>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </nav>

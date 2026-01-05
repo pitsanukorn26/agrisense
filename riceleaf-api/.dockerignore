@@ -1,0 +1,7 @@
+.venv
+__pycache__
+*.pyc
+runs_effnet_b3_A
+*.png
+*.npy
+*.csv

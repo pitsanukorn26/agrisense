@@ -592,7 +592,7 @@ case "durian-leaf-disease":
           Modal รายละเอียด
          ========================= */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-5xl p-0 overflow-hidden">
+        <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] max-w-5xl overflow-x-hidden overflow-y-auto p-0">
           {/* Header */}
           <DialogHeader className="px-6 pt-5 pb-3 border-b">
             <DialogTitle className="text-lg font-semibold">

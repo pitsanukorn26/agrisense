@@ -56,7 +56,7 @@ export default function HomePage() {
           alt="AgriSense Logo"
           width={320}
           height={300}
-          style={{ marginBottom: "12px" }}
+          className="mb-3 h-auto w-full max-w-[320px]"
           priority
         />
 
