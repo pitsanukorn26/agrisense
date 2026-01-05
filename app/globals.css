@@ -59,6 +59,15 @@
   }
 }
 
+@layer utilities {
+  .cta-orbit {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

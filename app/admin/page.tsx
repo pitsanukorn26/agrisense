@@ -5,7 +5,6 @@ import type { LucideIcon } from "lucide-react"
 import {
   ChevronRight,
   Crown,
-  Flag,
   Loader2,
   LogIn,
   RefreshCw,
@@ -21,7 +20,6 @@ import { DiseaseLibraryDialog } from "@/components/disease-library-dialog"
 import { useAuth } from "@/components/auth-provider"
 import { useLanguage } from "@/components/language-provider"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
@@ -80,21 +78,6 @@ type AdminLogEntry = {
   createdAt?: string
 }
 
-type AdminReport = {
-  id: string
-  scanId?: string
-  status: "open" | "resolved"
-  reason: string
-  resolutionNote?: string
-  createdAt?: string
-  resolvedAt?: string
-  reporter?: {
-    id?: string
-    email?: string
-    name?: string
-  } | null
-}
-
 type QuickLinkItem = {
   id: string
   label: string
@@ -116,10 +99,6 @@ export default function AdminPage() {
   const [logs, setLogs] = useState<AdminLogEntry[]>([])
   const [loadingLogs, setLoadingLogs] = useState(false)
   const [logError, setLogError] = useState<string | null>(null)
-  const [reports, setReports] = useState<AdminReport[]>([])
-  const [reportsLoading, setReportsLoading] = useState(false)
-  const [reportsError, setReportsError] = useState<string | null>(null)
-  const [resolvingId, setResolvingId] = useState<string | null>(null)
   const [isDiseaseDialogOpen, setDiseaseDialogOpen] = useState(false)
   const [isRoleDialogOpen, setRoleDialogOpen] = useState(false)
   const [isAlertDialogOpen, setAlertDialogOpen] = useState(false)
@@ -152,12 +131,6 @@ export default function AdminPage() {
         label: t("admin.quickLinks.diseases"),
         description: t("admin.quickLinks.diseasesDesc"),
         onSelect: () => setDiseaseDialogOpen(true),
-      },
-      {
-        id: "reports",
-        label: "การรายงานปัญหา",
-        description: "ตรวจสอบคำขอที่ถูกรีพอร์ตจากผู้ใช้",
-        href: "#admin-reports",
       },
       {
         id: "role-manager",
@@ -230,66 +203,12 @@ export default function AdminPage() {
     }
   }, [t, user?.role])
 
-  const loadReports = useCallback(async () => {
-    if (user?.role !== "admin") return
-    setReportsLoading(true)
-    setReportsError(null)
-    try {
-      const response = await fetch(`/api/admin/reports?limit=100`, {
-        credentials: "same-origin",
-        cache: "no-store",
-      })
-      const payload = await response.json().catch(() => ({}))
-      if (!response.ok) {
-        throw new Error(payload?.error ?? "ไม่สามารถโหลดรายการรายงานได้")
-      }
-      const records = Array.isArray(payload?.data) ? payload.data : []
-      setReports(records)
-    } catch (error) {
-      console.error("Failed to load reports", error)
-      setReportsError(error instanceof Error ? error.message : "ไม่สามารถโหลดรายการรายงานได้")
-    } finally {
-      setReportsLoading(false)
-    }
-  }, [user?.role])
-
-  const handleResolveReport = useCallback(
-    async (reportId: string) => {
-      setResolvingId(reportId)
-      try {
-        const response = await fetch(`/api/admin/reports/${reportId}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "same-origin",
-          body: JSON.stringify({
-            status: "resolved",
-            resolutionNote: "Reviewed by admin",
-          }),
-        })
-        const payload = await response.json().catch(() => ({}))
-        if (!response.ok) {
-          throw new Error(payload?.error ?? "ไม่สามารถอัปเดตรายงานได้")
-        }
-        await loadReports()
-      } catch (error) {
-        console.error("Failed to resolve report", error)
-        setReportsError(error instanceof Error ? error.message : "ไม่สามารถอัปเดตรายงานได้")
-      } finally {
-        setResolvingId(null)
-      }
-    },
-    [loadReports],
-  )
-
   useEffect(() => {
     if (user?.role === "admin") {
       void loadUsers()
       void loadLogs()
-      void loadReports()
     }
-  }, [user?.role, loadUsers, loadLogs, loadReports])
+  }, [user?.role, loadUsers, loadLogs])
 
   if (isLoading) {
     return (
@@ -384,115 +303,6 @@ export default function AdminPage() {
         tone="success"
       />
     </section>
-
-      <Card id="admin-reports" className="mt-8">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Flag className="h-5 w-5 text-amber-600" />
-            คำขอที่ถูกรายงาน
-          </CardTitle>
-          <CardDescription>ตรวจสอบคำขอวิเคราะห์ที่ผู้ใช้แจ้งปัญหา</CardDescription>
-          <p className="text-sm text-gray-400">ปิดรายงานเมื่อดำเนินการเสร็จ เพื่อลดคิวที่รอ</p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {reportsError && (
-            <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {reportsError}
-            </div>
-          )}
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>คำขอ</TableHead>
-                  <TableHead>เหตุผล</TableHead>
-                  <TableHead>ผู้รายงาน</TableHead>
-                  <TableHead>สถานะ</TableHead>
-                  <TableHead className="text-right">การจัดการ</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {reports.length === 0 && !reportsLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="py-8 text-center text-sm text-gray-500">
-                      ไม่มีรายงานที่รออยู่
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  reports.map((report) => (
-                    <TableRow key={report.id}>
-                      <TableCell className="text-sm text-gray-700">
-                        {report.scanId ? `Scan ${report.scanId}` : "ไม่พบคำขอ"}
-                        <div className="text-xs text-gray-400">
-                          {formatDateTime(report.createdAt, {
-                            locale: dateLocale,
-                            fallback: "—",
-                          })}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-sm text-gray-700 max-w-xs">
-                        <div className="line-clamp-3">{report.reason}</div>
-                        {report.resolutionNote && (
-                          <div className="mt-1 text-xs text-gray-500">หมายเหตุ: {report.resolutionNote}</div>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-sm text-gray-700">
-                        <div>{report.reporter?.name ?? report.reporter?.email ?? "ไม่ระบุ"}</div>
-                        {report.reporter?.email && (
-                          <div className="text-xs text-gray-500">{report.reporter.email}</div>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        <Badge
-                          variant={report.status === "resolved" ? "secondary" : "outline"}
-                          className={report.status === "resolved" ? "bg-green-50 text-green-700" : ""}
-                        >
-                          {report.status === "resolved" ? "ปิดงาน" : "รอตรวจสอบ"}
-                        </Badge>
-                        {report.resolvedAt && (
-                          <div className="text-xs text-gray-400">
-                            ปิดเมื่อ{" "}
-                            {formatDateTime(report.resolvedAt, {
-                              locale: dateLocale,
-                              fallback: "—",
-                            })}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={report.status === "resolved" || resolvingId === report.id}
-                          onClick={() => void handleResolveReport(report.id)}
-                        >
-                          {resolvingId === report.id ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              กำลังปิด
-                            </>
-                          ) : report.status === "resolved" ? (
-                            "ปิดแล้ว"
-                          ) : (
-                            "ปิดรายงาน"
-                          )}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-          {reportsLoading && (
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              กำลังโหลดรายการรายงาน...
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
 
       <Card id="admin-logs" className="mt-8">
         <CardHeader>
@@ -594,16 +404,16 @@ function SettingsCard({
   return (
     <Card className="h-full border-0 bg-white shadow-lg ring-1 ring-black/5">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base text-gray-900">{title}</CardTitle>
-        <CardDescription>{subtitle}</CardDescription>
+        <CardTitle className="text-lg text-gray-900">{title}</CardTitle>
+        <CardDescription className="text-sm text-gray-600">{subtitle}</CardDescription>
       </CardHeader>
       <CardContent className="divide-y divide-gray-100 p-0">
         {items.map((item) => {
           const content = (
             <>
               <div>
-                <p className="text-sm font-semibold text-gray-900">{item.label}</p>
-                <p className="text-xs text-gray-500">{item.description}</p>
+                <p className="text-base font-semibold text-gray-900">{item.label}</p>
+                <p className="text-sm text-gray-600">{item.description}</p>
               </div>
               <ChevronRight className="h-4 w-4 text-gray-400" />
             </>

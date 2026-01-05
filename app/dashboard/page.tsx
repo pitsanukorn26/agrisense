@@ -795,7 +795,7 @@ export default function DashboardPage() {
     : t("dashboard.loginPromptDescription")
 
   const heroSection = (
-    <section className="relative isolate h-72 w-full overflow-hidden bg-gray-900 sm:h-80 lg:h-[360px]">
+    <section className="relative isolate min-h-[20rem] w-full overflow-hidden bg-gray-900 sm:min-h-[22rem] lg:min-h-[360px]">
       <Image
         src="/rice-bg.jpg"
         alt="Rice field background"
@@ -806,13 +806,13 @@ export default function DashboardPage() {
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/70" />
       <div className="relative mx-auto flex h-full max-w-6xl flex-col justify-start px-4 py-10 text-white sm:py-12">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
+        <span className="text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
           {t("dashboard.profile")}
         </span>
         <h1 className="text-3xl font-bold text-white sm:text-4xl">{heroTitle}</h1>
-        <p className="mt-2 max-w-2xl text-sm text-white/80 sm:text-base">{heroSubtitle}</p>
+        <p className="mt-2 max-w-2xl text-base text-white/80 sm:text-lg">{heroSubtitle}</p>
         {showAuthenticatedContent && user?.createdAt && (
-          <p className="mt-3 text-xs text-white/70 sm:text-sm" suppressHydrationWarning>
+          <p className="mt-3 text-sm text-white/70 sm:text-base" suppressHydrationWarning>
             {t("dashboard.memberSince")}{" "}
             {formatDateTime(user.createdAt, {
               locale: dateLocale,
@@ -830,7 +830,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-[#f2f2f2]">
         <Navigation />
         {heroSection}
-        <div className="container relative z-10 mx-auto -mt-36 px-4 pb-10 sm:-mt-44 sm:pb-12">
+        <div className="container relative z-10 mx-auto -mt-24 px-4 pb-10 sm:-mt-36 sm:pb-12">
           <div className="mx-auto max-w-4xl space-y-8">
             <Card className="border-dashed">
               <CardHeader>
@@ -861,7 +861,7 @@ export default function DashboardPage() {
         <Navigation />
         {heroSection}
 
-        <div className="container relative z-10 mx-auto -mt-36 px-4 pb-10 sm:-mt-44 sm:pb-12">
+        <div className="container relative z-10 mx-auto -mt-24 px-4 pb-10 sm:-mt-36 sm:pb-12">
           <div className="mx-auto max-w-6xl">
             <div className="grid gap-8 lg:grid-cols-3">
               <div className="lg:col-span-1 space-y-6">
@@ -871,10 +871,12 @@ export default function DashboardPage() {
                       <User className="h-5 w-5" />
                       {t("dashboard.profile")}
                     </CardTitle>
-                  <CardDescription>{t("dashboard.profileDescription")}</CardDescription>
+                  <CardDescription className="text-base text-gray-600">
+                    {t("dashboard.profileDescription")}
+                  </CardDescription>
                 </CardHeader>
                   <CardContent className="space-y-4">
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
                     <Avatar className="h-16 w-16">
                       {user?.avatarUrl && (
                         <AvatarImage
@@ -885,33 +887,33 @@ export default function DashboardPage() {
                       )}
                       <AvatarFallback>{initialsFromName(user?.name, user?.email)}</AvatarFallback>
                     </Avatar>
-                      <div>
-                      <h3 className="text-lg font-semibold">
+                      <div className="space-y-0.5">
+                      <h3 className="text-xl font-semibold break-words">
                         {user?.name || user?.email || t("dashboard.anonymousUser")}
                       </h3>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-base text-gray-600">
                         {translateRole(user?.role)}
                       </p>
-                        <p className="text-sm text-gray-500">{user?.email}</p>
+                        <p className="text-base text-gray-500 break-words">{user?.email}</p>
                       </div>
                     </div>
 
                     <div id="alerts" className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{t("dashboard.alerts")}</span>
+                        <span className="text-base font-medium">{t("dashboard.alerts")}</span>
                         <Switch checked={alertsEnabled} onCheckedChange={handleAlertsToggle} />
                       </div>
                       <div className="space-y-2">
                         {alertFeed.length === 0 ? (
-                          <p className="text-sm text-gray-500">{t("dashboard.alertsEmpty")}</p>
+                          <p className="text-base text-gray-500">{t("dashboard.alertsEmpty")}</p>
                         ) : (
                           alertFeed.slice(0, 3).map((alert) => (
                             <div
                               key={alert.id}
                               className="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3"
                             >
-                                <p className="text-sm font-semibold text-gray-900">{alert.title}</p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-base font-semibold text-gray-900">{alert.title}</p>
+                                <p className="text-sm text-gray-500">
                                   <span suppressHydrationWarning>
                                     {formatDateTime(alert.createdAt, {
                                       locale: dateLocale,
@@ -924,7 +926,7 @@ export default function DashboardPage() {
                         )}
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{t("dashboard.profilePlan")}</span>
+                        <span className="text-base font-medium">{t("dashboard.profilePlan")}</span>
                         <Badge variant="outline">{translatePlan(user?.plan ?? "free")}</Badge>
                       </div>
                     </div>
@@ -932,7 +934,7 @@ export default function DashboardPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full"
+                      className="w-full text-base"
                       onClick={() => handleProfileDialogChange(true)}
                     >
                       <Settings className="mr-2 h-4 w-4" />
@@ -1024,13 +1026,18 @@ export default function DashboardPage() {
                               )}
                             </div>
                             <div className="flex flex-col gap-3 sm:h-full sm:min-w-[320px] sm:items-end sm:justify-between">
-                              <div className="flex items-center gap-3 whitespace-nowrap">
-                                <Badge variant={severityVariant(scan.severity)} className="flex items-center gap-1 whitespace-nowrap">
+                              <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:gap-3">
+                                <Badge
+                                  variant={severityVariant(scan.severity)}
+                                  className="flex items-center gap-1 sm:whitespace-nowrap"
+                                >
                                   {severityIcon(scan.severity)}
                                   {severityLabel ?? statusLabel}
                                 </Badge>
                                 {confidenceLabel && (
-                                  <span className="text-sm text-gray-500 shrink-0 whitespace-nowrap">{confidenceLabel}</span>
+                                  <span className="text-sm text-gray-500 shrink-0 sm:whitespace-nowrap">
+                                    {confidenceLabel}
+                                  </span>
                                 )}
                                 <Badge
                                   variant={
@@ -1040,6 +1047,7 @@ export default function DashboardPage() {
                                         ? "destructive"
                                         : "outline"
                                   }
+                                  className="sm:whitespace-nowrap"
                                 >
                                   {statusLabel}
                                 </Badge>
@@ -1138,7 +1146,7 @@ export default function DashboardPage() {
           }
         }}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[90vh] w-[calc(100%-1.5rem)] overflow-y-auto p-4 sm:max-w-2xl sm:p-6">
           <DialogHeader>
             <DialogTitle>{t("dashboard.detailDialogTitle")}</DialogTitle>
             <DialogDescription>{t("dashboard.detailDialogDescription")}</DialogDescription>
@@ -1157,19 +1165,19 @@ export default function DashboardPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <p className="text-xs uppercase text-gray-500">{t("dashboard.detailResult")}</p>
-                  <p className="text-base font-semibold text-gray-900">{detailDiagnosis}</p>
+                  <p className="text-base font-semibold text-gray-900 break-words">{detailDiagnosis}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase text-gray-500">{t("dashboard.detailStatus")}</p>
-                  <p className="text-base font-semibold text-gray-900">{detailStatus}</p>
+                  <p className="text-base font-semibold text-gray-900 break-words">{detailStatus}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase text-gray-500">{t("dashboard.detailSeverity")}</p>
-                  <p className="text-base font-semibold text-gray-900">{detailSeverity}</p>
+                  <p className="text-base font-semibold text-gray-900 break-words">{detailSeverity}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase text-gray-500">{t("dashboard.detailConfidence")}</p>
-                  <p className="text-base font-semibold text-gray-900">{detailConfidence}</p>
+                  <p className="text-base font-semibold text-gray-900 break-words">{detailConfidence}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase text-gray-500">{t("dashboard.detailSubmittedAt")}</p>
@@ -1221,14 +1229,14 @@ export default function DashboardPage() {
                 </div>
               )}
               {detailScan.failureReason && detailScan.status === "failed" && (
-                <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+                <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 break-words">
                   {t("dashboard.detailFailureReason")} {detailScan.failureReason}
                 </div>
               )}
               {detailNoteDisplay && (
                 <div>
                   <p className="text-xs uppercase text-gray-500">{t("dashboard.detailNotes")}</p>
-                  <p className="text-sm text-gray-800">{detailNoteDisplay}</p>
+                  <p className="text-sm text-gray-800 break-words">{detailNoteDisplay}</p>
                 </div>
               )}
               {detailScan.imageUrl && (
@@ -1237,7 +1245,7 @@ export default function DashboardPage() {
                   <img
                     src={detailScan.thumbnailUrl ?? detailScan.imageUrl}
                     alt={t("dashboard.detailImage")}
-                    className="mt-2 h-56 w-full rounded-lg object-cover"
+                    className="mt-2 h-48 w-full rounded-lg object-cover sm:h-56"
                   />
                   <a
                     href={detailScan.imageUrl}
@@ -1252,13 +1260,16 @@ export default function DashboardPage() {
               {metadataEntries.length > 0 && (
                 <div>
                   <p className="text-xs uppercase text-gray-500">{t("dashboard.detailMetadata")}</p>
-                  <div className="mt-2 space-y-1 rounded-md border bg-gray-50 p-3 text-xs text-gray-700">
+                  <div className="mt-2 space-y-2 rounded-md border bg-gray-50 p-3 text-xs text-gray-700">
                     {metadataEntries.map(([key, value]) => (
-                      <div key={key} className="flex items-start justify-between gap-4">
+                      <div
+                        key={key}
+                        className="flex flex-col items-start gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4"
+                      >
                         <span className="font-semibold text-gray-900">
                           {translateMetadataKey(key)}
                         </span>
-                        <span className="flex-1 text-right text-gray-700 break-words">
+                        <span className="flex-1 text-left text-gray-700 break-words sm:text-right">
                           {formatMetadataValue(value)}
                         </span>
                       </div>
@@ -1289,7 +1300,7 @@ export default function DashboardPage() {
       </Dialog>
 
       <AlertDialog open={Boolean(deleteTarget)} onOpenChange={handleDeleteDialogChange}>
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[calc(100%-1.5rem)] max-w-sm p-4 sm:max-w-md sm:p-6">
           <AlertDialogHeader>
             <AlertDialogTitle>{t("dashboard.deleteConfirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>{deleteConfirmationText}</AlertDialogDescription>
@@ -1297,9 +1308,15 @@ export default function DashboardPage() {
           {deleteError && (
             <div className="rounded-md bg-red-50 p-2 text-sm text-red-600">{deleteError}</div>
           )}
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteScan} disabled={isDeleting}>
+          <AlertDialogFooter className="gap-2 sm:gap-3">
+            <AlertDialogCancel disabled={isDeleting} className="w-full sm:w-auto">
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteScan}
+              disabled={isDeleting}
+              className="w-full sm:w-auto"
+            >
               {isDeleting ? t("dashboard.deletingStatus") : t("dashboard.deleteConfirmAction")}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -313,7 +313,7 @@ const translations = {
     "admin.quickLinks.logsDesc": "Review every recorded moderation action.",
     "admin.quickLinks.alerts": "Broadcast alerts",
     "admin.quickLinks.alertsDesc": "Jump to the disease alert announcement panel.",
-    "admin.quickLinks.diseases": "Disease intelligence (experts only)",
+    "admin.quickLinks.diseases": "Disease intelligence for experts",
     "admin.quickLinks.diseasesDesc": "Open the restricted Thai crop disease library.",
     "admin.alertComposer.title": "Create disease alert",
     "admin.alertComposer.description": "Publish urgent disease information to all users. Alerts appear under the profile notification center.",
@@ -419,7 +419,7 @@ const translations = {
     // Home Page
     "home.title": "AgriSense",
     "home.subtitle": "ระบบ AI สำหรับตรวจจับโรคพืช",
-    "home.description": "เทคโนโลยี AI ขั้นสูงเพื่อช่วยเกษตรกรระบุโรคพืชได้อย่างรวดเร็วและได้รับคำแนะนำการดูแลจากผู้เชี่ยวชาญ",
+    "home.description": "เทคโนโลยี AI ขั้นสูงเพื่อช่วยเกษตรกรระบุโรคพืชได้อย่างรวดเร็ว\nและได้รับคำแนะนำการดูแลจากผู้เชี่ยวชาญ",
     "home.start": "เริ่มวินิจฉัย",
     "home.features.fast": "วินิจฉัยรวดเร็ว",
     "home.features.fast.desc": "ได้ผลลัพธ์ในไม่กี่วินาทีด้วย AI ขั้นสูง",
@@ -696,7 +696,7 @@ const translations = {
     "admin.quickLinks.logsDesc": "ดูการกระทำล่าสุดของผู้ดูแลระบบทุกคน",
     "admin.quickLinks.alerts": "ประกาศการแจ้งเตือนโรค",
     "admin.quickLinks.alertsDesc": "ไปยังศูนย์ประกาศเตือนโรคให้ผู้ใช้ (เชื่อมกับหน้าโปรไฟล์)",
-    "admin.quickLinks.diseases": "คลังโรคพืช (เฉพาะผู้เชี่ยวชาญ)",
+    "admin.quickLinks.diseases": "คลังโรคพืชสำหรับผู้เชี่ยวชาญ",
     "admin.quickLinks.diseasesDesc": "เปิดฐานข้อมูลโรคพืชไทยเพื่อทบทวนและเพิ่มข้อมูล",
     "admin.alertComposer.title": "ประกาศแจ้งเตือนโรค",
     "admin.alertComposer.description":

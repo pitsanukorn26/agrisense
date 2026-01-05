@@ -49,33 +49,37 @@ export default function HomePage() {
       <Navigation />
 
       {/* 🏠 Hero Section */}
-      <section className="relative z-10 flex flex-col items-center justify-center px-6 pt-20 pb-0 text-center flex-grow">
+      <section className="relative z-10 flex flex-col items-center justify-center px-4 pt-16 pb-6 text-center flex-grow sm:px-6 sm:pt-20 sm:pb-0">
         {/* โลโก้ใหญ่ขึ้นและชิดข้อความ */}
         <Image
           src="/logo.png"
           alt="AgriSense Logo"
           width={320}
           height={300}
-          className="mb-3 h-auto w-full max-w-[320px]"
+          className="mb-3 h-auto w-full max-w-[240px] sm:max-w-[320px]"
           priority
         />
 
-        <p className="mt-1 mb-1 text-2xl text-green-300 font-semibold">
-          {t("home.subtitle")}
-        </p>
-        <p className="mb-8 max-w-2xl leading-relaxed text-gray-100">
-          {t("home.description")}
-        </p>
+        <div className="mx-auto mb-8 max-w-xl space-y-2 text-center sm:max-w-2xl sm:space-y-3">
+          <p className="text-xl font-semibold text-green-300 sm:text-2xl">
+            {t("home.subtitle")}
+          </p>
+          <p className="whitespace-pre-line text-base leading-relaxed text-gray-100 sm:text-lg">
+            {t("home.description")}
+          </p>
+        </div>
 
-        <Link href="/diagnosis">
-          <Button className="bg-green-600 hover:bg-green-700 text-white shadow-lg mt-2 mb-16 px-6 py-5 text-base font-semibold">
-            🌿 {t("home.start")} →
-          </Button>
-        </Link>
+        <div className="cta-orbit mt-2 mb-10 w-full max-w-xs sm:mb-16 sm:w-auto">
+          <Link href="/diagnosis">
+            <Button className="w-full rounded-full bg-green-600 px-12 py-7 text-xl font-semibold text-white shadow-2xl ring-1 ring-white/30 transition-transform hover:scale-[1.03] hover:bg-green-700 focus-visible:scale-[1.03] sm:px-14 sm:py-8 sm:text-2xl">
+              🌿 {t("home.start")} →
+            </Button>
+          </Link>
+        </div>
       </section>
 
       {/* 🌱 Feature Cards */}
-      <section className="relative z-10 -mt-6 mx-auto grid max-w-5xl gap-6 px-4 sm:grid-cols-3 mb-48">
+      <section className="relative z-10 -mt-4 mx-auto grid max-w-5xl gap-6 px-4 sm:-mt-6 sm:grid-cols-2 lg:grid-cols-3 mb-16 sm:mb-48">
         {[
           {
             icon: <Zap className="h-8 w-8 text-green-600" />,
@@ -98,7 +102,7 @@ export default function HomePage() {
             className="
               rounded-2xl border border-black/10
               bg-white/95 backdrop-blur-sm
-              p-8 text-center shadow-md text-gray-900
+              p-6 text-center shadow-md text-gray-900 sm:p-8
             "
           >
             <div className="flex justify-center mb-4">
@@ -106,17 +110,17 @@ export default function HomePage() {
                 {item.icon}
               </div>
             </div>
-            <h3 className="mb-3 text-xl font-semibold text-gray-900">
+            <h3 className="mb-3 text-lg font-semibold text-gray-900 sm:text-xl">
               {item.title}
             </h3>
-            <p className="text-gray-600">{item.desc}</p>
+            <p className="text-sm text-gray-600 sm:text-base">{item.desc}</p>
           </div>
         ))}
       </section>
 
       {/* 🖤 Footer */}
       <footer className="relative z-10 bg-black/80 py-6 text-center text-gray-200">
-        <p className="text-sm opacity-80">
+        <p className="text-xs opacity-80 sm:text-sm">
           © 2025 AgriSense — Empowering Smart Farming with AI
         </p>
       </footer>

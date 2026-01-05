@@ -58,7 +58,7 @@ export function Navigation() {
 
   const itemClass = (active: boolean) =>
     clsx(
-      "inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors",
+      "inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-base transition-colors lg:text-lg",
       active
         ? "bg-white/20 text-white font-semibold"
         : "text-white hover:bg-white/10"
@@ -132,6 +132,12 @@ export function Navigation() {
     navItems.push({ href: "/admin", label: t("nav.admin"), icon: Shield })
   }
 
+  const toggleLanguage = () => {
+    setLanguage(language === "th" ? "en" : "th")
+  }
+
+  const languageToggleLabel = language === "th" ? "🇹🇭 ไทย / EN" : "🇺🇸 EN / ไทย"
+
   const openAlert = (alert: StoredAlert, shouldMarkRead = false) => {
     setAlertPopoverOpen(false)
     setSelectedAlert(alert)
@@ -156,7 +162,7 @@ export function Navigation() {
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center space-x-2">
             <Leaf className="h-6 w-6 text-white" />
-            <span className="hidden text-lg font-semibold text-white sm:inline">AgriSense</span>
+            <span className="text-lg font-semibold text-white sm:text-xl">AgriSense</span>
           </Link>
 
           {/* เมนู */}
@@ -175,32 +181,15 @@ export function Navigation() {
 
         {/* ขวา: ปุ่มภาษา + Login/Register */}
         <div className="hidden items-center gap-3 md:flex">
-          {/* ปุ่มภาษา */}
+          {/* ปุ่มภาษา (รวมเป็นปุ่มเดียว) */}
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setLanguage("th")}
-            className={clsx(
-              "text-xs",
-              language === "th"
-                ? "bg-white text-green-700 font-semibold"
-                : "bg-transparent border-white text-white hover:bg-white/20",
-            )}
+            onClick={toggleLanguage}
+            aria-label="Toggle language"
+            className="bg-white text-green-700 font-semibold border-white text-sm hover:bg-white/90 sm:text-base"
           >
-            🇹🇭 ไทย
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setLanguage("en")}
-            className={clsx(
-              "text-xs",
-              language === "en"
-                ? "bg-white text-green-700 font-semibold"
-                : "bg-transparent border-white text-white hover:bg-white/20",
-            )}
-          >
-            🇺🇸 EN
+            {languageToggleLabel}
           </Button>
 
           {/* ปุ่ม Login + Register */}
@@ -209,7 +198,7 @@ export function Navigation() {
               <Link href="/login">
                 <Button
                   size="sm"
-                  className="border-none text-[#333] font-semibold"
+                  className="border-none text-base font-semibold text-[#333]"
                   style={{ backgroundColor: "#CED7B8" }}
                 >
                   <LogIn className="mr-1 h-4 w-4" />
@@ -219,7 +208,7 @@ export function Navigation() {
               <Link href="/register">
                 <Button
                   size="sm"
-                  className="border-none text-[#333] font-semibold"
+                  className="border-none text-base font-semibold text-[#333]"
                   style={{ backgroundColor: "#CED7B8" }}
                 >
                   {t("nav.register")}
@@ -318,7 +307,7 @@ export function Navigation() {
                 variant="outline"
                 size="sm"
                 onClick={logout}
-                className="bg-white text-green-700 font-semibold"
+                className="bg-white text-base font-semibold text-green-700"
               >
                 {t("nav.logout")}
               </Button>
@@ -343,32 +332,15 @@ export function Navigation() {
                 <SheetTitle>AgriSense</SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-6">
-                <div className="flex gap-2">
+                <div>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setLanguage("th")}
-                    className={clsx(
-                      "flex-1 text-sm",
-                      language === "th"
-                        ? "bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
-                        : "border-emerald-200 text-emerald-700 hover:bg-emerald-50",
-                    )}
+                    onClick={toggleLanguage}
+                    aria-label="Toggle language"
+                    className="w-full bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700"
                   >
-                    🇹🇭 ไทย
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setLanguage("en")}
-                    className={clsx(
-                      "flex-1 text-sm",
-                      language === "en"
-                        ? "bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
-                        : "border-emerald-200 text-emerald-700 hover:bg-emerald-50",
-                    )}
-                  >
-                    🇺🇸 EN
+                    {languageToggleLabel}
                   </Button>
                 </div>
 

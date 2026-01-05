@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { Navigation } from "@/components/navigation"
 import { Button } from "@/components/ui/button"
@@ -13,16 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { useLanguage } from "@/components/language-provider"
 import { useAuth } from "@/components/auth-provider"
 import {
@@ -33,7 +23,6 @@ import {
   XCircle,
   Camera,
   Clock,
-  Flag,
 } from "lucide-react"
 import { formatDateTime } from "@/lib/date-format"
 
@@ -148,11 +137,6 @@ export default function DiagnosisPage() {
   const [historyLoading, setHistoryLoading] = useState(false)
   const [historyError, setHistoryError] = useState<string | null>(null)
   const [historyRefresh, setHistoryRefresh] = useState(0)
-  const [reportDialogOpen, setReportDialogOpen] = useState(false)
-  const [reportTarget, setReportTarget] = useState<string | null>(null)
-  const [reportReason, setReportReason] = useState("")
-  const [reportSubmitting, setReportSubmitting] = useState(false)
-  const [reportError, setReportError] = useState<string | null>(null)
   const [persistenceDisabled, setPersistenceDisabled] = useState(false)
   const [persistenceWarning, setPersistenceWarning] = useState<string | null>(null)
 
@@ -530,46 +514,6 @@ export default function DiagnosisPage() {
     }
   }
 
-  const openReportDialog = (scanId: string) => {
-    setReportTarget(scanId)
-    setReportReason("")
-    setReportError(null)
-    setReportDialogOpen(true)
-  }
-
-  const submitReport = async () => {
-    if (!reportTarget || !reportReason.trim()) {
-      setReportError("โปรดระบุรายละเอียดปัญหาที่ต้องการรายงาน")
-      return
-    }
-    setReportSubmitting(true)
-    setReportError(null)
-    try {
-      const response = await fetch("/api/reports", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          scanId: reportTarget,
-          reason: reportReason.trim(),
-        }),
-      })
-      const payload = await response.json().catch(() => ({}))
-      if (!response.ok) {
-        throw new Error(payload?.error ?? "ไม่สามารถส่งรายงานได้")
-      }
-      setReportDialogOpen(false)
-    } catch (error) {
-      console.error("Failed to submit report", error)
-      setReportError(
-        error instanceof Error ? error.message : "ไม่สามารถส่งรายงานได้ กรุณาลองใหม่",
-      )
-    } finally {
-      setReportSubmitting(false)
-    }
-  }
-
   const getSeverityColor = (severity: string | undefined) => {
     if (!severity) return "outline"
     switch (severity.toLowerCase()) {
@@ -824,16 +768,16 @@ export default function DiagnosisPage() {
                   <Button
                     onClick={handleAnalyze}
                     disabled={!selectedImage || isAnalyzing}
-                    className="w-full bg-green-600 hover:bg-green-700"
+                    className="w-full h-14 text-base font-semibold bg-green-600 hover:bg-green-700 shadow-sm sm:text-lg"
                   >
                     {isAnalyzing ? (
                       <>
-                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
+                        <div className="mr-2 h-5 w-5 animate-spin rounded-full border-b-2 border-white" />
                         Analyzing...
                       </>
                     ) : (
                       <>
-                        <Brain className="mr-2 h-4 w-4" />
+                        <Brain className="mr-2 h-5 w-5" />
                         {t("diagnosis.analyze")}
                       </>
                     )}
@@ -1015,15 +959,6 @@ export default function DiagnosisPage() {
                           >
                             {statusText}
                           </Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-amber-700 hover:text-amber-800"
-                            onClick={() => openReportDialog(scan.id)}
-                          >
-                            <Flag className="mr-1 h-4 w-4" />
-                            รายงานปัญหา
-                          </Button>
                         </div>
                       </div>
                     )})}
@@ -1037,39 +972,6 @@ export default function DiagnosisPage() {
         </div>
       </div>
 
-      <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>รายงานปัญหาการวิเคราะห์</DialogTitle>
-            <DialogDescription>
-              แจ้งปัญหาหรือผลลัพธ์ที่ไม่ถูกต้อง เพื่อให้ผู้ดูแลระบบตรวจสอบ
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <Label htmlFor="report-reason">รายละเอียด</Label>
-            <Textarea
-              id="report-reason"
-              placeholder="เช่น ผลลัพธ์ไม่ตรงกับอาการ หรือระบบทำงานผิดพลาด"
-              value={reportReason}
-              onChange={(e) => setReportReason(e.target.value)}
-              maxLength={400}
-            />
-            {reportError && (
-              <div className="rounded-md bg-red-50 p-2 text-sm text-red-600">
-                {reportError}
-              </div>
-            )}
-          </div>
-          <DialogFooter className="gap-2 sm:justify-end">
-            <Button variant="outline" onClick={() => setReportDialogOpen(false)}>
-              ยกเลิก
-            </Button>
-            <Button onClick={submitReport} disabled={reportSubmitting}>
-              {reportSubmitting ? "กำลังส่ง..." : "ส่งรายงาน"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   )
 }

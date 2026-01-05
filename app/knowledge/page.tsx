@@ -149,14 +149,14 @@ export default function PlantipsPage() {
        *  ------------------------------------------ */
       case "rice-leaf-disease":
         return (
-          <div className="prose prose-sm max-w-none text-gray-800">
+          <div className="prose max-w-none text-gray-800">
             <p className="mb-3">
               {th
                 ? "การป้องกันโรคพืชในข้าวเป็นสิ่งสำคัญต่อผลผลิตและคุณภาพเมล็ดข้าว ช่วยลดความเสี่ยงขาดทุนและใช้สารเคมีอย่างจำเป็นเท่านั้น"
                 : "Preventing leaf diseases in rice is crucial for yield and grain quality, reducing losses and minimizing chemical use."}
             </p>
 
-            <h3 className="text-base font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900">
               {th ? "ประเภทโรคสำคัญ" : "Major diseases"}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
@@ -232,7 +232,7 @@ export default function PlantipsPage() {
               </ol>
             </div>
 
-            <h3 className="mt-4 text-base font-semibold text-gray-900">
+            <h3 className="mt-4 text-lg font-semibold text-gray-900">
               {th ? "วิธีการป้องกัน" : "Prevention"}
             </h3>
             <ol className="list-decimal pl-5 space-y-2">
@@ -270,14 +270,14 @@ export default function PlantipsPage() {
        *  ------------------------------------------ */
 case "sugarcane-leaf-disease":
   return (
-    <div className="prose prose-sm max-w-none text-gray-800">
+    <div className="prose max-w-none text-gray-800">
       <p className="mb-3">
         {th
           ? "การป้องกันโรคใบพืชในอ้อยเป็นสิ่งสำคัญ เพราะช่วยลดความเสียหายต่อผลผลิต รักษาคุณภาพอ้อย และลดการใช้สารเคมี เกษตรกรควรเลือกพันธุ์ต้านทาน ดูแลแปลงอย่างถูกวิธี และตรวจแปลงสม่ำเสมอเพื่อจัดการโรคได้ทันเวลา"
           : "Preventing leaf diseases in sugarcane is important to reduce yield loss, maintain quality, and minimize chemical use. Farmers should choose resistant varieties, manage fields properly, and regularly monitor crops to control outbreaks early."}
       </p>
 
-      <h3 className="text-base font-semibold text-gray-900">
+      <h3 className="text-lg font-semibold text-gray-900">
         {th ? "ประเภทโรคสำคัญ" : "Major Diseases"}
       </h3>
       <ul className="list-disc pl-5 space-y-2">
@@ -298,7 +298,7 @@ case "sugarcane-leaf-disease":
         </li>
       </ul>
 
-      <h3 className="text-base font-semibold text-gray-900 mt-4">
+      <h3 className="text-lg font-semibold text-gray-900 mt-4">
         {th ? "วิธีการป้องกัน" : "Prevention Methods"}
       </h3>
       <ol className="list-decimal pl-5 space-y-2">
@@ -336,14 +336,14 @@ case "sugarcane-leaf-disease":
        *  ------------------------------------------ */
 case "durian-leaf-disease":
   return (
-    <div className="prose prose-sm max-w-none text-gray-800">
+    <div className="prose max-w-none text-gray-800">
       <p className="mb-3">
         {th
           ? "ทุเรียนเป็นพืชเศรษฐกิจสำคัญของไทยที่ต้องอาศัยการดูแลอย่างใกล้ชิด โดยเฉพาะ “โรคใบ” ซึ่งส่งผลโดยตรงต่อการสังเคราะห์แสงและการเจริญเติบโต หากเกิดความเสียหายที่ใบจะทำให้ต้นอ่อนแอ ผลผลิตลดลง คุณภาพผลด้อยลง และบางครั้งอาจทำให้ต้นยืนต้นตาย การป้องกันโรคใบจึงเป็นหัวใจสำคัญในการดูแลสวนทุเรียนให้ให้ผลผลิตได้อย่างต่อเนื่องและยั่งยืน"
           : "Durian is an important economic crop in Thailand that requires close care, especially against leaf diseases, which directly affect photosynthesis and growth. Leaf damage weakens trees, reduces yield and fruit quality, and in severe cases may cause tree death. Preventing leaf diseases is therefore essential for sustainable durian production."}
       </p>
 
-      <h3 className="text-base font-semibold text-gray-900">
+      <h3 className="text-lg font-semibold text-gray-900">
         {th ? "ประเภทโรคสำคัญ" : "Major Diseases"}
       </h3>
       <ul className="list-disc pl-5 space-y-2">
@@ -364,7 +364,7 @@ case "durian-leaf-disease":
         </li>
       </ul>
 
-      <h3 className="text-base font-semibold text-gray-900 mt-4">
+      <h3 className="text-lg font-semibold text-gray-900 mt-4">
         {th ? "วิธีการป้องกัน" : "Prevention Methods"}
       </h3>
       <ol className="list-decimal pl-5 space-y-2">
@@ -401,13 +401,13 @@ case "durian-leaf-disease":
        *  ------------------------------------------ */
       case "rice-bph":
         return (
-          <div className="prose prose-sm max-w-none text-gray-800">
+          <div className="prose max-w-none text-gray-800">
             <p className="mb-3">
               {th
                 ? "เพลี้ยกระโดดสีน้ำตาลทำให้ข้าวแห้งตายเป็นหย่อม (hopperburn) แนวทางคือ IPM เน้นเฝ้าระวังและใช้สารอย่างจำเพาะเมื่อถึงระดับเศรษฐกิจ"
                 : "Brown planthopper causes hopperburn; IPM emphasizes monitoring and targeted sprays only beyond economic thresholds."}
             </p>
-            <h3 className="text-base font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900">
               {th ? "แนวทางจัดการ" : "Management"}
             </h3>
             <ol className="list-decimal pl-5 space-y-2">
@@ -445,13 +445,13 @@ case "durian-leaf-disease":
        *  ------------------------------------------ */
       case "sugarcane-stem-borer":
         return (
-          <div className="prose prose-sm max-w-none text-gray-800">
+          <div className="prose max-w-none text-gray-800">
             <p className="mb-3">
               {th
                 ? "หนอนเจาะลำต้นทำให้ลำอ้อยหักโค่น/ตายแห้ง ลดน้ำตาล แนวทางเน้นสุขอนามัยแปลงและชีววิธีร่วมกับสารอย่างจำเป็น"
                 : "Stem borer causes deadhearts and lodging, reducing sugar; management combines sanitation and biological control with selective chemicals."}
             </p>
-            <h3 className="text-base font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900">
               {th ? "แนวทางจัดการ" : "Management"}
             </h3>
             <ol className="list-decimal pl-5 space-y-2">
@@ -489,13 +489,13 @@ case "durian-leaf-disease":
        *  ------------------------------------------ */
       case "durian-thrips":
         return (
-          <div className="prose prose-sm max-w-none text-gray-800">
+          <div className="prose max-w-none text-gray-800">
             <p className="mb-3">
               {th
                 ? "เพลี้ยไฟทำลายใบอ่อน/ผลอ่อน เกิดรอยสนิม ผิวผลเสียหาย คุมด้วยสภาพแวดล้อมที่เหมาะสมและการพ่นแบบสลับกลไก"
                 : "Thrips damage young leaves/fruits causing scarring; manage microclimate and rotate insecticide MoA."}
             </p>
-            <h3 className="text-base font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900">
               {th ? "แนวทางป้องกัน/ควบคุม" : "Prevention/Control"}
             </h3>
             <ol className="list-decimal pl-5 space-y-2">
@@ -554,8 +554,8 @@ case "durian-leaf-disease":
           {sections.map((section) => (
             <section key={section.key} className="space-y-6">
               <div className="flex items-center gap-2">
-                <span className="text-xl">🌾</span>
-                <h2 className="text-[20px] font-semibold text-gray-900">
+                <span className="text-2xl">🌾</span>
+                <h2 className="text-2xl font-semibold text-gray-900 sm:text-3xl">
                   {section.heading}
                 </h2>
               </div>
@@ -576,7 +576,7 @@ case "durian-leaf-disease":
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                         />
                       </div>
-                      <figcaption className="mt-3 text-center text-[15px] text-gray-800">
+                      <figcaption className="mt-3 text-center text-base text-gray-800 sm:text-lg">
                         {item.title}
                       </figcaption>
                     </figure>
@@ -595,7 +595,7 @@ case "durian-leaf-disease":
         <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] max-w-5xl overflow-x-hidden overflow-y-auto p-0">
           {/* Header */}
           <DialogHeader className="px-6 pt-5 pb-3 border-b">
-            <DialogTitle className="text-lg font-semibold">
+            <DialogTitle className="text-xl font-semibold">
               {active?.title}
             </DialogTitle>
           </DialogHeader>

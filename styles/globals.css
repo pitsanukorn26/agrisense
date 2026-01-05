@@ -6,9 +6,56 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+@keyframes cta-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .cta-orbit {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px;
+    border-radius: 9999px;
+  }
+
+  .cta-orbit::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: conic-gradient(
+      from 90deg,
+      rgba(16, 185, 129, 0.15),
+      rgba(16, 185, 129, 0.65),
+      rgba(255, 255, 255, 0.95),
+      rgba(16, 185, 129, 0.65),
+      rgba(16, 185, 129, 0.15)
+    );
+    animation: cta-spin 2.4s linear infinite;
+    filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6));
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .cta-orbit:hover::before {
+    filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.8));
+  }
+
+  .cta-orbit > * {
+    position: relative;
+    z-index: 1;
+    border-radius: inherit;
   }
 }
 
